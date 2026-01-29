@@ -452,3 +452,24 @@ This project demonstrates:
 - **Database Tables**: 11
 - **Security Features**: 10+
 - **Demo Users**: 3 (Admin, User, Moderator)
+
+
+
+🔐 Demo User Credentials
+According to the seed data (line 2):
+
+Admin Account
+Email: admin@example.com
+Password: Password123!
+Role: Admin (full access)
+Other Test Accounts
+Regular User:
+
+Email: user@example.com
+Password: Password123!
+Role: User
+Moderator:
+
+Email: moderator@example.com
+Password: Password123!
+Role: Moderator
