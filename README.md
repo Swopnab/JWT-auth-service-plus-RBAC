@@ -1,3 +1,9 @@
+🔐 Test Login:
+
+Email: test@test.com
+Password: Password123!
+
+
 # Auth Service with JWT and RBAC
 
 A production-ready authentication and authorization service built with React, Cloudflare Workers, and D1. Features JWT-based authentication with refresh token rotation, comprehensive RBAC, audit logging, session management, and modern security best practices.
