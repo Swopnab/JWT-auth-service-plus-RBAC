@@ -12,7 +12,11 @@ const app = new Hono();
 // CORS middleware
 app.use('/*', async (c, next) => {
     const corsMiddleware = cors({
-        origin: [c.env.FRONTEND_URL, 'http://localhost:5173'],
+        origin: [
+            'https://swopnab.github.io',
+            c.env.FRONTEND_URL,
+            'http://localhost:5173'
+        ],
         allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
         allowHeaders: ['Content-Type', 'Authorization'],
         exposeHeaders: ['Content-Length', 'X-Request-Id'],
