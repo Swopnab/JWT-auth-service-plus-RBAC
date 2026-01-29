@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Auth Service</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+    <div class="auth-page">
+        <div class="auth-container">
+            <div class="auth-card">
+                <div class="auth-header">
+                    <svg class="auth-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                        <circle cx="8.5" cy="7" r="4" />
+                        <line x1="20" y1="8" x2="20" y2="14" />
+                        <line x1="23" y1="11" x2="17" y2="11" />
+                    </svg>
+                    <h1>Create Account</h1>
+                    <p>Get started with your free account</p>
+                </div>
+
+                <form id="registerForm" class="auth-form">
+                    <div class="form-group">
+                        <label for="email" class="form-label">Email Address</label>
+                        <input id="email" type="email" class="input" placeholder="you@example.com" required />
+                        <span class="form-error" id="emailError"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password" class="form-label">Password</label>
+                        <input id="password" type="password" class="input" placeholder="••••••••" required />
+                        <div id="passwordStrength" class="hidden mt-sm">
+                            <div
+                                style="height: 4px; background: var(--color-bg-tertiary); border-radius: 9999px; overflow: hidden;">
+                                <div id="strengthBar" style="height: 100%; width: 0%; transition: all 0.3s;"></div>
+                            </div>
+                            <span id="strengthText" style="font-size: var(--font-size-sm);"></span>
+                        </div>
+                        <span class="form-error" id="passwordError"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="confirmPassword" class="form-label">Confirm Password</label>
+                        <input id="confirmPassword" type="password" class="input" placeholder="••••••••" required />
+                        <span class="form-error" id="confirmError"></span>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
+                        Create account
+                    </button>
+                </form>
+
+                <div class="auth-footer">
+                    <p>Already have an account? <a href="index.html" class="link-primary">Sign in</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script src="js/toast.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        redirectIfLoggedIn();
+
+        const form = document.getElementById('registerForm');
+        const passwordInput = document.getElementById('password');
+        const passwordStrength = document.getElementById('passwordStrength');
+        const strengthBar = document.getElementById('strengthBar');
+        const strengthText = document.getElementById('strengthText');
+
+        // Password strength checker
+        passwordInput.addEventListener('input', () => {
+            const password = passwordInput.value;
+            if (!password) {
+                passwordStrength.classList.add('hidden');
+                return;
+            }
+
+            passwordStrength.classList.remove('hidden');
+
+            const checks = [
+                password.length >= 8,
+                /[a-z]/.test(password),
+                /[A-Z]/.test(password),
+                /[0-9]/.test(password)
+            ];
+
+            const strength = checks.filter(Boolean).length;
+
+            if (strength <= 2) {
+                strengthBar.style.width = '33%';
+                strengthBar.style.backgroundColor = 'var(--color-error)';
+                strengthText.textContent = 'Weak';
+                strengthText.style.color = 'var(--color-error)';
+            } else if (strength === 3) {
+                strengthBar.style.width = '66%';
+                strengthBar.style.backgroundColor = 'var(--color-warning)';
+                strengthText.textContent = 'Medium';
+                strengthText.style.color = 'var(--color-warning)';
+            } else {
+                strengthBar.style.width = '100%';
+                strengthBar.style.backgroundColor = 'var(--color-success)';
+                strengthText.textContent = 'Strong';
+                strengthText.style.color = 'var(--color-success)';
+            }
+        });
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value.trim();
+            const password = passwordInput.value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            // Clear errors
+            document.querySelectorAll('.form-error').forEach(el => el.textContent = '');
+            document.querySelectorAll('.input').forEach(el => el.classList.remove('error'));
+
+            // Validate
+            if (!email) {
+                document.getElementById('emailError').textContent = 'Email is required';
+                document.getElementById('email').classList.add('error');
+                return;
+            }
+
+            if (password.length < 8) {
+                document.getElementById('passwordError').textContent = 'Password must be at least 8 characters';
+                passwordInput.classList.add('error');
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                document.getElementById('confirmError').textContent = "Passwords don't match";
+                document.getElementById('confirmPassword').classList.add('error');
+                return;
+            }
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner"></span> Creating account...';
+
+            try {
+                const result = await register(email, password);
+                showToast('Registration successful!', 'success');
+
+                // Show verification message if link is provided (dev mode)
+                if (result.verificationLink) {
+                    showToast('Check console for verification link (dev mode)', 'info');
+                    console.log('Verification link:', result.verificationLink);
+                }
+
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1500);
+            } catch (error) {
+                showToast(error.message, 'error');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Create account';
+            }
+        });
+    </script>
+</body>
+
+</html>

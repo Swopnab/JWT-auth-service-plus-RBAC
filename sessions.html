@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sessions - Auth Service</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body class="dashboard">
+    <header class="header">
+        <div class="header-content">
+            <a href="dashboard.html" class="logo">🛡️ Auth Service</a>
+            <div class="flex gap-md items-center">
+                <a href="dashboard.html" class="link-secondary">Dashboard</a>
+                <button onclick="logout()" class="btn btn-primary">Logout</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="flex justify-between items-center mb-xl">
+            <div>
+                <h1>Active Sessions</h1>
+                <p style="color: var(--color-text-secondary);">Manage your logged-in devices</p>
+            </div>
+            <button id="revokeAllBtn" class="btn hidden" style="background: var(--color-error); color: white;">
+                Revoke All Sessions
+            </button>
+        </div>
+
+        <div id="sessionsContainer"></div>
+        <div id="loadingSpinner" class="flex justify-center" style="padding: 3rem;">
+            <div class="spinner" style="border-color: var(--color-border); border-top-color: var(--color-primary);">
+            </div>
+        </div>
+    </main>
+
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script src="js/toast.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        requireAuth();
+
+        const container = document.getElementById('sessionsContainer');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const revokeAllBtn = document.getElementById('revokeAllBtn');
+
+        async function loadSessions() {
+            try {
+                const data = await getSessions();
+                const sessions = data.sessions || [];
+
+                loadingSpinner.classList.add('hidden');
+
+                if (sessions.length === 0) {
+                    container.innerHTML = `
+                        <div class="card" style="text-align: center; padding: 3rem;">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--color-text-tertiary); margin: 0 auto var(--spacing-md);">
+                                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                                <line x1="8" y1="21" x2="16" y2="21"/>
+                                <line x1="12" y1="17" x2="12" y2="21"/>
+                            </svg>
+                            <p style="color: var(--color-text-secondary);">No active sessions</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                if (sessions.length > 1) {
+                    revokeAllBtn.classList.remove('hidden');
+                }
+
+                container.innerHTML = sessions.map(session => `
+                    <div class="card mb-lg">
+                        <div class="flex justify-between items-start">
+                            <div class="flex gap-md">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--color-primary);">
+                                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                                    <line x1="8" y1="21" x2="16" y2="21"/>
+                                    <line x1="12" y1="17" x2="12" y2="21"/>
+                                </svg>
+                                <div>
+                                    <h4 style="margin-bottom: var(--spacing-xs);">${session.device_name || 'Unknown Device'}</h4>
+                                    <p style="color: var(--color-text-secondary); font-size: var(--font-size-sm); margin: 0;">
+                                        ${session.ip_address || 'Unknown IP'}
+                                    </p>
+                                    <p style="color: var(--color-text-tertiary); font-size: var(--font-size-xs); margin: 0;">
+                                        Last active: ${new Date(session.last_activity).toLocaleDateString()}
+                                    </p>
+                                </div>
+                            </div>
+                            <button onclick="revokeSingle('${session.id}')" class="btn btn-sm" style="background: var(--color-error); color: white;">
+                                Revoke
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+
+            } catch (error) {
+                loadingSpinner.classList.add('hidden');
+                showToast(error.message, 'error');
+            }
+        }
+
+        async function revokeSingle(sessionId) {
+            if (!confirm('Revoke this session?')) return;
+
+            try {
+                await revokeSession(sessionId);
+                showToast('Session revoked', 'success');
+                loadSessions();
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        revokeAllBtn.addEventListener('click', async () => {
+            if (!confirm('Revoke all sessions? You will be logged out.')) return;
+
+            try {
+                await revokeAllSessions();
+                showToast('All sessions revoked', 'success');
+                setTimeout(() => logout(), 1000);
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        });
+
+        window.revokeSingle = revokeSingle;
+        loadSessions();
+    </script>
+</body>
+
+</html>
