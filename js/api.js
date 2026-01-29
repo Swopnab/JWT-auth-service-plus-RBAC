@@ -1,5 +1,5 @@
 // API Configuration
-const API_BASE_URL = 'http://localhost:8787';
+const API_BASE_URL = 'https://auth-service-api.swopnabbikram.workers.dev';
 
 // API Helper Functions
 async function apiRequest(endpoint, options = {}) {
