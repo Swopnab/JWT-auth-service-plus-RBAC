@@ -26,7 +26,7 @@ import {
 import { authMiddleware } from '../middleware/auth';
 import { auditLog } from '../middleware/audit';
 import {
-    loginRate Limit,
+    loginRateLimit,
     registerRateLimit,
     forgotPasswordRateLimit,
 } from '../middleware/ratelimit';

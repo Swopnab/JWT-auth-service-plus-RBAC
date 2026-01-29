@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Auth Service</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body class="dashboard">
+    <header class="header">
+        <div class="header-content">
+            <a href="dashboard.html" class="logo">🛡️ Auth Service</a>
+            <div class="flex gap-md items-center">
+                <span id="userEmail"></span>
+                <button onclick="logout()" class="btn btn-primary">Logout</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="mb-xl">
+            <h1>Dashboard</h1>
+            <p style="color: var(--color-text-secondary);">Welcome back, <span id="welcomeEmail"></span>!</p>
+        </div>
+
+        <div
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: var(--spacing-lg);">
+            <div class="card">
+                <h3 class="mb-md">Email Status</h3>
+                <div id="emailStatus"></div>
+            </div>
+
+            <div class="card">
+                <h3 class="mb-md">Roles</h3>
+                <div id="rolesContainer" class="flex gap-sm" style="flex-wrap: wrap;"></div>
+            </div>
+
+            <div class="card">
+                <h3 class="mb-md">Permissions</h3>
+                <p id="permissionCount" style="font-size: var(--font-size-lg); font-weight: 600;"></p>
+            </div>
+        </div>
+
+        <div class="card mt-lg">
+            <h3 class="mb-md">Your Permissions</h3>
+            <div id="permissionsContainer"
+                style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: var(--spacing-sm);">
+            </div>
+        </div>
+    </main>
+
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script src="js/toast.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        requireAuth();
+
+        const user = getCurrentUser();
+
+        if (user) {
+            // Update UI with user data
+            document.getElementById('userEmail').textContent = user.email;
+            document.getElementById('welcomeEmail').textContent = user.email;
+
+            // Email verification status
+            const emailStatus = document.getElementById('emailStatus');
+            if (user.email_verified) {
+                emailStatus.innerHTML = '<span class="badge badge-success">Verified ✓</span>';
+            } else {
+                emailStatus.innerHTML = '<span class="badge" style="background: #fef3c7; color: #92400e;">Unverified</span>';
+            }
+
+            // Roles
+            const rolesContainer = document.getElementById('rolesContainer');
+            user.roles.forEach(role => {
+                const badge = document.createElement('span');
+                badge.className = 'badge badge-info';
+                badge.textContent = role;
+                rolesContainer.appendChild(badge);
+            });
+
+            // Permissions count
+            document.getElementById('permissionCount').textContent = `${user.permissions.length} permissions`;
+
+            // Permissions list
+            const permissionsContainer = document.getElementById('permissionsContainer');
+            user.permissions.forEach(permission => {
+                const badge = document.createElement('span');
+                badge.className = 'badge badge-success';
+                badge.style.fontSize = 'var(--font-size-xs)';
+                badge.textContent = permission;
+                permissionsContainer.appendChild(badge);
+            });
+        }
+    </script>
+</body>
+
+</html>

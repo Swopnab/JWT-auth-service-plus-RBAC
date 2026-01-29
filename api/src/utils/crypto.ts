@@ -1,6 +1,6 @@
 // Cryptographic utilities
 
-import * as crypto from 'crypto';
+import * as crypto from 'node:crypto';
 
 // Generate a secure random token
 export function generateSecureToken(length: number = 32): string {

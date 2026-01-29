@@ -1,12 +1,13 @@
 name = "auth-service-api"
 main = "src/index.ts"
 compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
 
 # D1 Database binding
 [[d1_databases]]
 binding = "DB"
 database_name = "auth-db"
-database_id = "" # Will be populated after creating D1 database
+database_id = "b5ee7b2a-f9e5-4be9-9f82-5d04342ff363" # Will be populated after creating D1 database
 
 # Environment variables (use wrangler secret for production)
 [vars]
