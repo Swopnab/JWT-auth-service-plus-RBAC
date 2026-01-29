@@ -1,0 +1,28 @@
+{
+  "name": "jwt-auth-service-plus-rbac",
+  "version": "1.0.0",
+  "description": "Authentication and Authorization Service with JWT and RBAC",
+  "private": true,
+  "workspaces": [
+    "client",
+    "api"
+  ],
+  "scripts": {
+    "dev:client": "npm run dev --workspace=client",
+    "dev:api": "npm run dev --workspace=api",
+    "build:client": "npm run build --workspace=client",
+    "build:api": "npm run build --workspace=api",
+    "deploy:client": "npm run deploy --workspace=client",
+    "deploy:api": "npm run deploy --workspace=api"
+  },
+  "keywords": [
+    "authentication",
+    "authorization",
+    "jwt",
+    "rbac",
+    "cloudflare-workers",
+    "react"
+  ],
+  "author": "",
+  "license": "MIT"
+}

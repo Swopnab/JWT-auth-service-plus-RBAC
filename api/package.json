@@ -1,0 +1,24 @@
+{
+    "name": "api",
+    "version": "1.0.0",
+    "description": "Cloudflare Worker API for Auth Service",
+    "main": "src/index.ts",
+    "scripts": {
+        "dev": "wrangler dev",
+        "deploy": "wrangler deploy",
+        "db:migrate": "wrangler d1 execute auth-db --file=./migrations/0001_initial.sql",
+        "db:seed": "wrangler d1 execute auth-db --file=./seeds/dev-data.sql"
+    },
+    "dependencies": {
+        "hono": "^4.0.0",
+        "jose": "^5.2.0",
+        "bcryptjs": "^2.4.3",
+        "zod": "^3.22.4"
+    },
+    "devDependencies": {
+        "@cloudflare/workers-types": "^4.20240117.0",
+        "wrangler": "^3.22.1",
+        "typescript": "^5.3.3",
+        "@types/bcryptjs": "^2.4.6"
+    }
+}

@@ -1,0 +1,25 @@
+name = "auth-service-api"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+# D1 Database binding
+[[d1_databases]]
+binding = "DB"
+database_name = "auth-db"
+database_id = "" # Will be populated after creating D1 database
+
+# Environment variables (use wrangler secret for production)
+[vars]
+JWT_ACCESS_SECRET = "your-super-secret-jwt-access-key-change-this-in-production"
+JWT_REFRESH_SECRET = "your-super-secret-jwt-refresh-key-change-this-in-production"
+ACCESS_TOKEN_EXPIRY = "15m"
+REFRESH_TOKEN_EXPIRY = "7d"
+FRONTEND_URL = "http://localhost:5173"
+RATE_LIMIT_LOGIN = "5"
+RATE_LIMIT_WINDOW = "300"
+
+# CORS configuration
+[cors]
+origins = ["http://localhost:5173"]
+methods = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
+allowed_headers = ["Content-Type", "Authorization"]
