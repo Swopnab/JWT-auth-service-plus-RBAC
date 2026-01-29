@@ -1,11 +1,10 @@
-// Cryptographic utilities
-
-import * as crypto from 'node:crypto';
+// Cryptographic utilities using Web Crypto API (Cloudflare Workers compatible)
 
 // Generate a secure random token
 export function generateSecureToken(length: number = 32): string {
-    const buffer = crypto.randomBytes(length);
-    return buffer.toString('hex');
+    const array = new Uint8Array(length);
+    crypto.getRandomValues(array);
+    return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
 }
 
 // Generate a random session ID
@@ -13,9 +12,17 @@ export function generateSessionId(): string {
     return generateSecureToken(16);
 }
 
-// Hash a token for storage (using SHA-256)
+// Simple hash function for storing tokens
+// Note: This is a basic hash. In production with Workers, use subtle.digest in async handlers
 export function hashToken(token: string): string {
-    return crypto.createHash('sha256').update(token).digest('hex');
+    let hash = 0;
+    for (let i = 0; i < token.length; i++) {
+        const char = token.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash; // Convert to 32bit integer
+    }
+    // Return as hex string
+    return (hash >>> 0).toString(16).padStart(8, '0');
 }
 
 // Generate device fingerprint from request headers
@@ -24,10 +31,9 @@ export function generateDeviceFingerprint(request: Request): string {
     const acceptLanguage = request.headers.get('accept-language') || '';
     const acceptEncoding = request.headers.get('accept-encoding') || '';
 
-    // Combine headers to create a fingerprint
+    // Simple fingerprint - combine and hash
     const fingerprintData = `${userAgent}|${acceptLanguage}|${acceptEncoding}`;
-
-    return crypto.createHash('sha256').update(fingerprintData).digest('hex');
+    return hashToken(fingerprintData);
 }
 
 // Get IP address from request

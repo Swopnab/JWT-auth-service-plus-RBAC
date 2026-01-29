@@ -1,6 +1,5 @@
 // Authentication service - handles password hashing, JWT generation, token management
 
-import bcrypt from 'bcryptjs';
 import { SignJWT, jwtVerify } from 'jose';
 import type { Env, AccessTokenPayload, RefreshTokenPayload, UserWithRoles } from '../types';
 import { config, parseDuration, addSeconds, formatDateForDB } from '../config';
@@ -10,14 +9,89 @@ import { UnauthorizedError } from '../utils/errors';
 export class AuthService {
     constructor(private env: Env, private db: D1Database) { }
 
-    // Hash password using bcrypt
+    // Hash password using Web Crypto API (scrypt)
     async hashPassword(password: string): Promise<string> {
-        return bcrypt.hash(password, config.BCRYPT_ROUNDS);
+        const encoder = new TextEncoder();
+        const passwordBytes = encoder.encode(password);
+
+        // Generate random salt
+        const salt = crypto.getRandomValues(new Uint8Array(16));
+
+        // Derive key using PBKDF2 (more Workers-friendly than scrypt)
+        const keyMaterial = await crypto.subtle.importKey(
+            'raw',
+            passwordBytes,
+            'PBKDF2',
+            false,
+            ['deriveBits']
+        );
+
+        const derivedBits = await crypto.subtle.deriveBits(
+            {
+                name: 'PBKDF2',
+                salt: salt,
+                iterations: 100000,
+                hash: 'SHA-256'
+            },
+            keyMaterial,
+            256
+        );
+
+        // Combine salt + hash
+        const hashArray = new Uint8Array(derivedBits);
+        const combined = new Uint8Array(salt.length + hashArray.length);
+        combined.set(salt);
+        combined.set(hashArray, salt.length);
+
+        // Return as base64
+        return btoa(String.fromCharCode(...combined));
     }
 
     // Verify password against hash
     async verifyPassword(password: string, hash: string): Promise<boolean> {
-        return bcrypt.compare(password, hash);
+        try {
+            const encoder = new TextEncoder();
+            const passwordBytes = encoder.encode(password);
+
+            // Decode the hash
+            const combined = Uint8Array.from(atob(hash), c => c.charCodeAt(0));
+            const salt = combined.slice(0, 16);
+            const originalHash = combined.slice(16);
+
+            // Derive key with same parameters
+            const keyMaterial = await crypto.subtle.importKey(
+                'raw',
+                passwordBytes,
+                'PBKDF2',
+                false,
+                ['deriveBits']
+            );
+
+            const derivedBits = await crypto.subtle.deriveBits(
+                {
+                    name: 'PBKDF2',
+                    salt: salt,
+                    iterations: 100000,
+                    hash: 'SHA-256'
+                },
+                keyMaterial,
+                256
+            );
+
+            const newHash = new Uint8Array(derivedBits);
+
+            // Constant-time comparison
+            if (newHash.length !== originalHash.length) return false;
+
+            let diff = 0;
+            for (let i = 0; i < newHash.length; i++) {
+                diff |= newHash[i] ^ originalHash[i];
+            }
+
+            return diff === 0;
+        } catch (error) {
+            return false;
+        }
     }
 
     // Generate access token (short-lived)

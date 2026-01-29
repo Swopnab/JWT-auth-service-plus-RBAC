@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Player - Auth Service</title>
+    <link rel="stylesheet" href="css/music-player/style.css">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <i class="fa-solid fa-music"></i> Library
+            </div>
+            <ul class="song-list" id="songList">
+                <!-- Songs will be injected here -->
+            </ul>
+            <div style="margin-top: auto; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
+                <a href="dashboard.html"
+                    style="color: #fa2d48; text-decoration: none; display: flex; align-items: center; gap: 8px; padding: 10px; border-radius: 8px; transition: background 0.2s;">
+                    <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+                </a>
+                <button id="logoutBtn"
+                    style="width: 100%; margin-top: 10px; padding: 10px; background: rgba(255,255,255,0.1); border: none; color: white; border-radius: 8px; cursor: pointer; font-family: inherit;">
+                    <i class="fa-solid fa-right-from-bracket"></i> Logout
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="now-playing-view">
+                <div class="album-art-large" id="albumArtLarge">
+                    <i class="fa-solid fa-compact-disc"></i>
+                </div>
+                <h2 id="currentTitleLarge">Select a song</h2>
+            </div>
+        </main>
+
+        <!-- Player Bar -->
+        <footer class="player-bar glass">
+            <div class="track-info">
+                <div class="track-details">
+                    <span class="track-name" id="currentTitle">No Song Playing</span>
+                </div>
+            </div>
+
+            <div class="player-controls">
+                <div class="control-buttons">
+                    <button id="prevBtn" class="control-btn"><i class="fa-solid fa-backward-step"></i></button>
+                    <button id="playBtn" class="control-btn play-pause"><i class="fa-solid fa-play"></i></button>
+                    <button id="nextBtn" class="control-btn"><i class="fa-solid fa-forward-step"></i></button>
+                </div>
+                <div class="progress-container">
+                    <span id="currentTime">0:00</span>
+                    <input type="range" id="progressBar" value="0" min="0" max="100">
+                    <span id="duration">0:00</span>
+                </div>
+            </div>
+
+            <div class="volume-container">
+                <div class="volume-header">
+                    <label>Volume</label>
+                    <span id="volumeValue" class="volume-value">100</span>
+                </div>
+                <div class="volume-slider-wrapper">
+                    <i class="fa-solid fa-volume-xmark volume-icon"></i>
+                    <input type="range" id="volumeBar" value="100" min="0" max="100" aria-label="Volume slider">
+                    <i class="fa-solid fa-volume-high volume-icon"></i>
+                </div>
+            </div>
+        </footer>
+
+        <!-- Hidden Audio Element -->
+        <audio id="audioPlayer"></audio>
+    </div>
+
+    <!-- JWT Auth Protection -->
+    <script src="js/api.js"></script>
+    <script>
+        // Protect this page - redirect if not logged in
+        requireAuth();
+
+        // Logout handler
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            logout();
+        });
+    </script>
+
+    <!-- Music Player Logic -->
+    <script src="js/music-player/app.js"></script>
+</body>
+
+</html>
