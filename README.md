@@ -430,13 +430,6 @@ npm test
 - [ ] Admin impersonation feature
 - [ ] Webhook system for external integrations
 
-## 🤝 Contributing
-
-This is a portfolio project, but suggestions are welcome! Please open an issue first to discuss proposed changes.
-
-## 📄 License
-
-MIT License - see LICENSE file for details.
 
 ## 🎓 Learning Resources
 
@@ -451,14 +444,6 @@ This project demonstrates:
 - React state management
 - TypeScript best practices
 
-## 🙋 Support
-
-For questions or issues:
-
-1. Check the [Research Paper](../brain/.../authentication_services_research.md) for context
-2. Review [Implementation Plan](../brain/.../implementation_plan.md) for architecture details
-3. Open a GitHub issue
-
 ## 📊 Project Stats
 
 - **Lines of Code**: ~5,000+
@@ -467,9 +452,3 @@ For questions or issues:
 - **Database Tables**: 11
 - **Security Features**: 10+
 - **Demo Users**: 3 (Admin, User, Moderator)
-
----
-
-**Built with ❤️ as an internship-level portfolio project**
-
-*Showcasing: TypeScript, React, Cloudflare Workers, D1, JWT, RBAC, Security Best Practices*
