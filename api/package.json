@@ -8,7 +8,9 @@
         "dev": "wrangler dev",
         "deploy": "wrangler deploy",
         "db:migrate": "wrangler d1 execute auth-db --file=./migrations/0001_initial.sql",
-        "db:seed": "wrangler d1 execute auth-db --file=./seeds/dev-data.sql"
+        "db:migrate:local": "wrangler d1 execute auth-db --local --file=./migrations/0001_initial.sql",
+        "db:seed": "wrangler d1 execute auth-db --file=./seeds/dev-data.sql",
+        "db:seed:local": "wrangler d1 execute auth-db --local --file=./seeds/dev-data.sql"
     },
     "dependencies": {
         "hono": "^4.0.0",

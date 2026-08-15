@@ -33,15 +33,15 @@ SELECT 3, id FROM permissions WHERE name IN ('users.read', 'users.write', 'audit
 -- Insert demo users
 -- Admin user
 INSERT INTO users (email, password_hash, email_verified) VALUES
-  ('admin@example.com', '$2a$10$3euPcmQFCiblsZeEu5s7p.e0cGCJj.eVJBvJ5B1PJYZ0y4zt0ORaq', 1);
+  ('admin@example.com', 'Nl64OlvSkVR9hSL+x/wVg7Wevq8Qtyp+3R1zcpu3M1tNgvvyMAcIoWGqhanAA8tc', 1);
 
 -- Regular user
 INSERT INTO users (email, password_hash, email_verified) VALUES
-  ('user@example.com', '$2a$10$3euPcmQFCiblsZeEu5s7p.e0cGCJj.eVJBvJ5B1PJYZ0y4zt0ORaq', 1);
+  ('user@example.com', 'Nl64OlvSkVR9hSL+x/wVg7Wevq8Qtyp+3R1zcpu3M1tNgvvyMAcIoWGqhanAA8tc', 1);
 
 -- Moderator user
 INSERT INTO users (email, password_hash, email_verified) VALUES
-  ('moderator@example.com', '$2a$10$3euPcmQFCiblsZeEu5s7p.e0cGCJj.eVJBvJ5B1PJYZ0y4zt0ORaq', 1);
+  ('moderator@example.com', 'Nl64OlvSkVR9hSL+x/wVg7Wevq8Qtyp+3R1zcpu3M1tNgvvyMAcIoWGqhanAA8tc', 1);
 
 -- Assign roles to users
 INSERT INTO user_roles (user_id, role_id, assigned_by) VALUES
