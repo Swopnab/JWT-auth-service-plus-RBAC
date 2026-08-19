@@ -17,18 +17,32 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="logo">
-                <i class="fa-solid fa-music"></i> Library
+                <i class="fa-solid fa-music"></i> Audius Library
             </div>
+
+            <!-- Search Bar -->
+            <div class="search-container">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <input type="text" id="searchInput" class="search-input" placeholder="Search songs or artists..." autocomplete="off">
+                <button id="searchClearBtn" class="search-clear-btn hidden" title="Clear search"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="playlist-header">
+                <span id="playlistTitle">Trending Tracks</span>
+                <span id="playlistCount" class="playlist-count"></span>
+            </div>
+
             <ul class="song-list" id="songList">
-                <!-- Songs will be injected here -->
+                <!-- Search results / tracks injected here -->
             </ul>
-            <div style="margin-top: auto; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
+
+            <div style="margin-top: auto; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.1);">
                 <a href="dashboard.html"
-                    style="color: #fa2d48; text-decoration: none; display: flex; align-items: center; gap: 8px; padding: 10px; border-radius: 8px; transition: background 0.2s;">
+                    style="color: #fa2d48; text-decoration: none; display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; font-size: 0.85rem; transition: background 0.2s;">
                     <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
                 </a>
                 <button id="logoutBtn"
-                    style="width: 100%; margin-top: 10px; padding: 10px; background: rgba(255,255,255,0.1); border: none; color: white; border-radius: 8px; cursor: pointer; font-family: inherit;">
+                    style="width: 100%; margin-top: 8px; padding: 8px 10px; background: rgba(255,255,255,0.08); border: none; color: white; border-radius: 8px; cursor: pointer; font-family: inherit; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 8px;">
                     <i class="fa-solid fa-right-from-bracket"></i> Logout
                 </button>
             </div>
@@ -40,27 +54,32 @@
                 <div class="album-art-large" id="albumArtLarge">
                     <i class="fa-solid fa-compact-disc"></i>
                 </div>
-                <h2 id="currentTitleLarge">Select a song</h2>
+                <h2 id="currentTitleLarge">Select a track</h2>
+                <p id="currentArtistLarge" class="current-artist-large">Explore trending tracks or search above</p>
             </div>
         </main>
 
         <!-- Player Bar -->
         <footer class="player-bar glass">
             <div class="track-info">
+                <div class="player-artwork" id="playerArtwork">
+                    <i class="fa-solid fa-music"></i>
+                </div>
                 <div class="track-details">
-                    <span class="track-name" id="currentTitle">No Song Playing</span>
+                    <span class="track-name" id="currentTitle">No Track Playing</span>
+                    <span class="track-artist" id="currentArtist">Audius Stream</span>
                 </div>
             </div>
 
             <div class="player-controls">
                 <div class="control-buttons">
-                    <button id="prevBtn" class="control-btn"><i class="fa-solid fa-backward-step"></i></button>
-                    <button id="playBtn" class="control-btn play-pause"><i class="fa-solid fa-play"></i></button>
-                    <button id="nextBtn" class="control-btn"><i class="fa-solid fa-forward-step"></i></button>
+                    <button id="prevBtn" class="control-btn" title="Previous Track"><i class="fa-solid fa-backward-step"></i></button>
+                    <button id="playBtn" class="control-btn play-pause" title="Play/Pause"><i class="fa-solid fa-play"></i></button>
+                    <button id="nextBtn" class="control-btn" title="Next Track"><i class="fa-solid fa-forward-step"></i></button>
                 </div>
                 <div class="progress-container">
                     <span id="currentTime">0:00</span>
-                    <input type="range" id="progressBar" value="0" min="0" max="100">
+                    <input type="range" id="progressBar" value="0" min="0" max="100" aria-label="Track progress">
                     <span id="duration">0:00</span>
                 </div>
             </div>
@@ -79,11 +98,13 @@
         </footer>
 
         <!-- Hidden Audio Element -->
-        <audio id="audioPlayer"></audio>
+        <audio id="audioPlayer" preload="auto"></audio>
     </div>
 
-    <!-- JWT Auth Protection & Music Player Logic -->
+    <!-- JWT Auth Protection, Audius API & Music Player Logic -->
+    <script src="js/toast.js"></script>
     <script src="js/api.js"></script>
+    <script src="js/music-player/audius.js"></script>
     <script src="js/music-player/app.js"></script>
     <script>
         (async () => {
@@ -98,7 +119,7 @@
                 });
             }
 
-            // Init music player only after successful authentication
+            // Initialize music player and fetch trending tracks
             if (typeof initMusicPlayer === 'function') {
                 initMusicPlayer();
             }
