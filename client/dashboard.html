@@ -16,8 +16,9 @@
         <div class="header-content">
             <a href="dashboard.html" class="logo">🛡️ Auth Service</a>
             <div class="flex gap-md items-center">
-                <span id="userEmail"></span>
-                <button onclick="logout()" class="btn btn-primary">Logout</button>
+                <a href="sessions.html" class="link-secondary" style="font-size: var(--font-size-sm);">Sessions</a>
+                <span id="userEmail" style="font-size: var(--font-size-sm); color: var(--color-text-secondary);"></span>
+                <button onclick="logout()" class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: var(--font-size-sm);">Logout</button>
             </div>
         </div>
     </header>
@@ -28,38 +29,93 @@
             <p style="color: var(--color-text-secondary);">Welcome back, <span id="welcomeEmail"></span>!</p>
         </div>
 
-        <div
-            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: var(--spacing-lg);">
+        <!-- Account Status Grid -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--spacing-lg);">
             <div class="card">
-                <h3 class="mb-md">Email Status</h3>
+                <h3 class="mb-md" style="font-size: var(--font-size-base);">Email Status</h3>
                 <div id="emailStatus"></div>
             </div>
 
             <div class="card">
-                <h3 class="mb-md">Roles</h3>
+                <h3 class="mb-md" style="font-size: var(--font-size-base);">Roles</h3>
                 <div id="rolesContainer" class="flex gap-sm" style="flex-wrap: wrap;"></div>
             </div>
 
             <div class="card">
-                <h3 class="mb-md">Permissions</h3>
+                <h3 class="mb-md" style="font-size: var(--font-size-base);">Permissions</h3>
                 <p id="permissionCount" style="font-size: var(--font-size-lg); font-weight: 600;"></p>
-            </div>
-
-            <div class="card"
-                style="background: linear-gradient(135deg, #fa2d48 0%, #ff6a88 100%); border: none; cursor: pointer; transition: transform 0.2s;"
-                onclick="window.location.href='music-player.html'" onmouseover="this.style.transform='scale(1.02)'"
-                onmouseout="this.style.transform='scale(1)'">
-                <h3
-                    style="color: white; margin-bottom: var(--spacing-sm); display: flex; align-items: center; gap: 8px;">
-                    🎵 Music Player
-                </h3>
-                <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: var(--font-size-sm);">Access your
-                    protected music library</p>
-                <p style="color: rgba(255,255,255,0.7); font-size: var(--font-size-sm); margin-top: var(--spacing-sm);">
-                    Audius Streaming • JWT protected →</p>
             </div>
         </div>
 
+        <!-- Connected Apps Section -->
+        <div class="mt-lg">
+            <h2 class="mb-md" style="font-size: var(--font-size-xl); font-weight: 600;">Available Apps</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--spacing-lg);">
+                
+                <!-- App 1: Music Player -->
+                <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; border-top: 4px solid #fa2d48;">
+                    <div>
+                        <div class="flex items-center gap-sm mb-sm">
+                            <span style="font-size: 1.5rem;">🎵</span>
+                            <h3 style="font-size: 1.1rem; font-weight: 600;">Music Player</h3>
+                        </div>
+                        <p style="color: var(--color-text-secondary); font-size: var(--font-size-sm); margin-bottom: var(--spacing-md); line-height: 1.5;">
+                            Stream and search unlimited music via Audius API with a custom player interface.
+                        </p>
+                    </div>
+                    <div class="flex gap-sm items-center mt-md">
+                        <a href="music-player.html" class="btn btn-primary btn-sm" style="background: linear-gradient(135deg, #fa2d48 0%, #ff6a88 100%); border: none; font-size: var(--font-size-sm); padding: 0.5rem 1rem;">
+                            Launch App
+                        </a>
+                    </div>
+                </div>
+
+                <!-- App 2: Hand-Controlled Racing Simulation -->
+                <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; border-top: 4px solid #3b82f6;">
+                    <div>
+                        <div class="flex items-center gap-sm mb-sm">
+                            <span style="font-size: 1.5rem;">🏎️</span>
+                            <h3 style="font-size: 1.1rem; font-weight: 600;">Hand-Controlled Racing</h3>
+                        </div>
+                        <p style="color: var(--color-text-secondary); font-size: var(--font-size-sm); margin-bottom: var(--spacing-md); line-height: 1.5;">
+                            Control a browser racing game using real-time webcam hand tracking.
+                        </p>
+                    </div>
+                    <div class="flex gap-sm items-center mt-md">
+                        <a href="https://swopnab.github.io/Hand-controlled-racing-simulation/" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm" style="font-size: var(--font-size-sm); padding: 0.5rem 1rem;">
+                            Launch App
+                        </a>
+                        <a href="https://github.com/Swopnab/Hand-controlled-racing-simulation" target="_blank" rel="noopener noreferrer" class="link-secondary" style="font-size: var(--font-size-xs); padding-left: 0.25rem;">
+                            View Source ↗
+                        </a>
+                    </div>
+                </div>
+
+                <!-- App 3: Personal Job Tracker -->
+                <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; border-top: 4px solid #10b981;">
+                    <div>
+                        <div class="flex items-center gap-sm mb-sm">
+                            <span style="font-size: 1.5rem;">💼</span>
+                            <h3 style="font-size: 1.1rem; font-weight: 600;">Personal Job Tracker</h3>
+                        </div>
+                        <p style="color: var(--color-text-secondary); font-size: var(--font-size-sm); margin-bottom: var(--spacing-md); line-height: 1.5;">
+                            Track job applications, companies, roles, and application status.
+                        </p>
+                    </div>
+                    <div class="flex gap-sm items-center mt-md">
+                        <a href="https://swopnab.github.io/Personal-Job-Tracker-app/" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm" style="background-color: var(--color-success); font-size: var(--font-size-sm); padding: 0.5rem 1rem;">
+                            Launch App
+                        </a>
+                        <a href="https://github.com/Swopnab/Personal-Job-Tracker-app" target="_blank" rel="noopener noreferrer" class="link-secondary" style="font-size: var(--font-size-xs); padding-left: 0.25rem;">
+                            View Source ↗
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Permissions Section -->
         <div class="card mt-lg">
             <h3 class="mb-md">Your Permissions</h3>
             <div id="permissionsContainer"
