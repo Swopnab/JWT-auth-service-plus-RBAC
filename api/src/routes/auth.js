@@ -105,6 +105,7 @@ auth.post('/login', loginRateLimit, async (c) => {
         user: {
             id: userWithRoles.id,
             email: userWithRoles.email,
+            nickname: userWithRoles.nickname || null,
             email_verified: userWithRoles.email_verified === 1,
             roles: userWithRoles.roles,
             permissions: userWithRoles.permissions,

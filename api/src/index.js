@@ -6,6 +6,8 @@ import { formatErrorResponse } from './utils/errors.js';
 import auth from './routes/auth.js';
 import user from './routes/user.js';
 import admin from './routes/admin.js';
+import jobs from './routes/jobs.js';
+import favorites from './routes/favorites.js';
 
 const app = new Hono();
 
@@ -35,7 +37,9 @@ app.get('/health', (c) => {
 // Mount routes
 app.route('/auth', auth);
 app.route('/user', user);
-app.route('/', user); // /me, /sessions
+app.route('/jobs', jobs);
+app.route('/favorites', favorites);
+app.route('/', user); // /me, /sessions, /settings fallback
 app.route('/admin', admin);
 
 // 404 handler

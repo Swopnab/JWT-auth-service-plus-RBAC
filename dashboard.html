@@ -9,6 +9,154 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .compact-status-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            padding: 10px 18px;
+            background-color: var(--color-bg-secondary);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .status-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: var(--font-size-sm);
+        }
+
+        .status-label {
+            color: var(--color-text-secondary);
+            font-weight: 500;
+        }
+
+        .nickname-container {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-link {
+            background: none;
+            border: none;
+            color: var(--color-primary);
+            cursor: pointer;
+            font-size: var(--font-size-xs);
+            font-weight: 500;
+            padding: 2px 4px;
+            text-decoration: underline;
+            border-radius: var(--radius-md);
+        }
+
+        .btn-link:hover {
+            color: var(--color-primary-dark);
+        }
+
+        .apps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: var(--spacing-lg);
+        }
+
+        .app-card {
+            background-color: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .app-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .app-title {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--color-text);
+            margin-bottom: 6px;
+            line-height: 1.3;
+        }
+
+        .app-desc {
+            font-size: var(--font-size-sm);
+            color: var(--color-text-secondary);
+            line-height: 1.45;
+            margin-bottom: var(--spacing-md);
+            flex-grow: 1;
+        }
+
+        .lang-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.75rem;
+            color: var(--color-text-secondary);
+            font-weight: 500;
+        }
+
+        .lang-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .btn-sm {
+            padding: 0.35rem 0.75rem;
+            font-size: var(--font-size-xs);
+            font-weight: 500;
+        }
+
+        .search-input-wrapper {
+            position: relative;
+            min-width: 240px;
+            max-width: 320px;
+            width: 100%;
+        }
+
+        .search-input-wrapper input {
+            width: 100%;
+            padding: 6px 12px 6px 32px;
+            font-size: var(--font-size-sm);
+            border-radius: var(--radius-full);
+            border: 1px solid var(--color-border);
+            outline: none;
+            background: var(--color-bg);
+        }
+
+        .search-input-wrapper input:focus {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+        }
+
+        .search-icon-inside {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.8rem;
+            color: var(--color-text-tertiary);
+            pointer-events: none;
+        }
+
+        .state-container {
+            grid-column: 1 / -1;
+            padding: 40px 20px;
+            text-align: center;
+            color: var(--color-text-secondary);
+        }
+    </style>
 </head>
 
 <body class="dashboard">
@@ -18,108 +166,74 @@
             <div class="flex gap-md items-center">
                 <a href="sessions.html" class="link-secondary" style="font-size: var(--font-size-sm);">Sessions</a>
                 <span id="userEmail" style="font-size: var(--font-size-sm); color: var(--color-text-secondary);"></span>
-                <button onclick="logout()" class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: var(--font-size-sm);">Logout</button>
+                <button onclick="logout()" class="btn btn-primary btn-sm">Logout</button>
             </div>
         </div>
     </header>
 
     <main class="main-content">
-        <div class="mb-xl">
-            <h1>Dashboard</h1>
-            <p style="color: var(--color-text-secondary);">Welcome back, <span id="welcomeEmail"></span>!</p>
-        </div>
-
-        <!-- Account Status Grid -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--spacing-lg);">
-            <div class="card">
-                <h3 class="mb-md" style="font-size: var(--font-size-base);">Email Status</h3>
-                <div id="emailStatus"></div>
+        <!-- Top Greeting & Editable Nickname -->
+        <div class="mb-md flex justify-between items-center" style="flex-wrap: wrap; gap: 12px;">
+            <div>
+                <h1 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 2px;">Dashboard</h1>
+                <p style="color: var(--color-text-secondary); font-size: var(--font-size-sm); margin: 0;">
+                    Welcome back, <span class="nickname-container"><strong id="userDisplayName" style="color: var(--color-text);">...</strong><button id="editNicknameBtn" class="btn-link" title="Change nickname">Edit</button></span>
+                </p>
             </div>
 
-            <div class="card">
-                <h3 class="mb-md" style="font-size: var(--font-size-base);">Roles</h3>
-                <div id="rolesContainer" class="flex gap-sm" style="flex-wrap: wrap;"></div>
-            </div>
-
-            <div class="card">
-                <h3 class="mb-md" style="font-size: var(--font-size-base);">Permissions</h3>
-                <p id="permissionCount" style="font-size: var(--font-size-lg); font-weight: 600;"></p>
+            <!-- Inline Nickname Edit Form -->
+            <div id="nicknameEditForm" class="hidden flex items-center gap-xs" style="background: var(--color-bg-secondary); padding: 4px 8px; border-radius: var(--radius-md); border: 1px solid var(--color-border);">
+                <input type="text" id="nicknameInput" class="input" placeholder="Enter nickname" maxlength="50" style="padding: 4px 8px; font-size: var(--font-size-xs); width: 140px;">
+                <button id="saveNicknameBtn" class="btn btn-primary btn-sm" style="padding: 4px 8px;">Save</button>
+                <button id="cancelNicknameBtn" class="btn btn-sm" style="background: var(--color-border); color: var(--color-text); padding: 4px 6px;">✕</button>
             </div>
         </div>
 
-        <!-- Connected Apps Section -->
+        <!-- Compact Status Row (Email, Roles, Permissions) -->
+        <div class="compact-status-bar">
+            <div class="status-item">
+                <span class="status-label">Email:</span>
+                <span id="emailStatus"></span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Roles:</span>
+                <span id="rolesContainer" class="flex gap-xs items-center"></span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Permissions:</span>
+                <span id="permissionCount" class="badge badge-info" style="font-size: var(--font-size-xs);">0 permissions</span>
+            </div>
+        </div>
+
+        <!-- Available Apps & GitHub Repositories Section -->
         <div class="mt-lg">
-            <h2 class="mb-md" style="font-size: var(--font-size-xl); font-weight: 600;">Available Apps</h2>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--spacing-lg);">
-                
-                <!-- App 1: Music Player -->
-                <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; border-top: 4px solid #fa2d48;">
-                    <div>
-                        <div class="flex items-center gap-sm mb-sm">
-                            <span style="font-size: 1.5rem;">🎵</span>
-                            <h3 style="font-size: 1.1rem; font-weight: 600;">Music Player</h3>
-                        </div>
-                        <p style="color: var(--color-text-secondary); font-size: var(--font-size-sm); margin-bottom: var(--spacing-md); line-height: 1.5;">
-                            Stream and search unlimited music via Audius API with a custom player interface.
-                        </p>
-                    </div>
-                    <div class="flex gap-sm items-center mt-md">
-                        <a href="music-player.html" class="btn btn-primary btn-sm" style="background: linear-gradient(135deg, #fa2d48 0%, #ff6a88 100%); border: none; font-size: var(--font-size-sm); padding: 0.5rem 1rem;">
-                            Launch App
-                        </a>
-                    </div>
+            <div class="flex justify-between items-center mb-md" style="flex-wrap: wrap; gap: 10px;">
+                <div>
+                    <h2 style="font-size: 1.2rem; font-weight: 600; margin: 0;">Available Apps</h2>
+                    <p style="color: var(--color-text-secondary); font-size: var(--font-size-xs); margin-top: 2px;">
+                        Built-in apps & public repositories from <strong style="color: var(--color-text);">@Swopnab</strong>
+                    </p>
                 </div>
-
-                <!-- App 2: Hand-Controlled Racing Simulation -->
-                <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; border-top: 4px solid #3b82f6;">
-                    <div>
-                        <div class="flex items-center gap-sm mb-sm">
-                            <span style="font-size: 1.5rem;">🏎️</span>
-                            <h3 style="font-size: 1.1rem; font-weight: 600;">Hand-Controlled Racing</h3>
-                        </div>
-                        <p style="color: var(--color-text-secondary); font-size: var(--font-size-sm); margin-bottom: var(--spacing-md); line-height: 1.5;">
-                            Control a browser racing game using real-time webcam hand tracking.
-                        </p>
-                    </div>
-                    <div class="flex gap-sm items-center mt-md">
-                        <a href="https://swopnab.github.io/Hand-controlled-racing-simulation/" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm" style="font-size: var(--font-size-sm); padding: 0.5rem 1rem;">
-                            Launch App
-                        </a>
-                        <a href="https://github.com/Swopnab/Hand-controlled-racing-simulation" target="_blank" rel="noopener noreferrer" class="link-secondary" style="font-size: var(--font-size-xs); padding-left: 0.25rem;">
-                            View Source ↗
-                        </a>
-                    </div>
+                <div class="search-input-wrapper">
+                    <span class="search-icon-inside">🔍</span>
+                    <input type="text" id="repoSearchInput" placeholder="Filter apps & repositories..." autocomplete="off">
                 </div>
+            </div>
 
-                <!-- App 3: Personal Job Tracker -->
-                <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; border-top: 4px solid #10b981;">
-                    <div>
-                        <div class="flex items-center gap-sm mb-sm">
-                            <span style="font-size: 1.5rem;">💼</span>
-                            <h3 style="font-size: 1.1rem; font-weight: 600;">Personal Job Tracker</h3>
-                        </div>
-                        <p style="color: var(--color-text-secondary); font-size: var(--font-size-sm); margin-bottom: var(--spacing-md); line-height: 1.5;">
-                            Track job applications, companies, roles, and application status.
-                        </p>
-                    </div>
-                    <div class="flex gap-sm items-center mt-md">
-                        <a href="https://swopnab.github.io/Personal-Job-Tracker-app/" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm" style="background-color: var(--color-success); font-size: var(--font-size-sm); padding: 0.5rem 1rem;">
-                            Launch App
-                        </a>
-                        <a href="https://github.com/Swopnab/Personal-Job-Tracker-app" target="_blank" rel="noopener noreferrer" class="link-secondary" style="font-size: var(--font-size-xs); padding-left: 0.25rem;">
-                            View Source ↗
-                        </a>
-                    </div>
+            <div id="appsGrid" class="apps-grid">
+                <!-- Music Player & dynamically loaded GitHub projects will render here -->
+                <div class="state-container">
+                    <div class="spinner" style="margin: 0 auto 12px; border-color: rgba(59,130,246,0.3); border-top-color: var(--color-primary);"></div>
+                    <p>Loading projects from GitHub...</p>
                 </div>
-
             </div>
         </div>
 
-        <!-- Permissions Section -->
-        <div class="card mt-lg">
-            <h3 class="mb-md">Your Permissions</h3>
+        <!-- Permissions Details Section -->
+        <div class="card mt-lg" style="padding: var(--spacing-md) var(--spacing-lg);">
+            <h3 style="font-size: var(--font-size-base); margin-bottom: var(--spacing-sm);">Your Permissions Details</h3>
             <div id="permissionsContainer"
-                style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: var(--spacing-sm);">
+                style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: var(--spacing-xs);">
             </div>
         </div>
     </main>
@@ -129,52 +243,377 @@
     <script src="js/toast.js"></script>
     <script src="js/api.js"></script>
     <script>
+        let allProjects = [];
+
+        // Escape HTML to prevent XSS
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        // Format repository name into clean title case
+        function formatRepoTitle(name) {
+            if (!name) return 'Untitled Project';
+            // Replace hyphens and underscores with spaces
+            const words = name.replace(/[-_]+/g, ' ').trim().split(/\s+/);
+            return words.map(w => {
+                // Keep known acronyms uppercase
+                const upper = w.toUpperCase();
+                if (['JWT', 'RBAC', 'AI', 'API', 'UI', 'CSS', 'HTML', 'JS', 'REST', 'SDK'].includes(upper)) {
+                    return upper;
+                }
+                return w.charAt(0).toUpperCase() + w.slice(1);
+            }).join(' ');
+        }
+
+        // Get language color for visual badge
+        function getLanguageColor(lang) {
+            const colors = {
+                'JavaScript': '#f1e05a',
+                'TypeScript': '#3178c6',
+                'Python': '#3572A5',
+                'HTML': '#e34c26',
+                'CSS': '#563d7c',
+                'Shell': '#89e051',
+                'Vue': '#41b883',
+                'React': '#61dafb',
+                'C++': '#f34b7d',
+                'Java': '#b07219'
+            };
+            return colors[lang] || '#6b7280';
+        }
+
+        // Render project cards inside grid
+        function renderApps(projects) {
+            const grid = document.getElementById('appsGrid');
+            if (!grid) return;
+
+            if (projects.length === 0) {
+                grid.innerHTML = `
+                    <div class="state-container">
+                        <p style="font-size: 0.95rem; margin-bottom: 6px;">No projects match your filter.</p>
+                        <button onclick="clearSearch()" class="btn-link" style="font-size: 0.85rem;">Clear search filter</button>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = '';
+
+            projects.forEach(project => {
+                const card = document.createElement('div');
+                card.className = 'app-card';
+
+                if (project.isFeatured) {
+                    card.style.borderTop = `4px solid ${project.accentColor || '#fa2d48'}`;
+                }
+
+                const langHtml = project.language ? `
+                    <span class="lang-badge">
+                        <span class="lang-dot" style="background-color: ${getLanguageColor(project.language)};"></span>
+                        ${escapeHtml(project.language)}
+                    </span>
+                ` : '';
+
+                const launchBtnHtml = project.launchUrl ? `
+                    <a href="${escapeHtml(project.launchUrl)}" ${project.isExternal ? 'target="_blank" rel="noopener noreferrer"' : ''} class="btn btn-primary btn-sm" style="${project.buttonStyle || ''}">
+                        Launch App
+                    </a>
+                ` : '';
+
+                const sourceBtnHtml = project.sourceUrl ? `
+                    <a href="${escapeHtml(project.sourceUrl)}" target="_blank" rel="noopener noreferrer" class="link-secondary" style="font-size: var(--font-size-xs); display: inline-flex; align-items: center; gap: 4px;">
+                        View Source ↗
+                    </a>
+                ` : '';
+
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-center justify-between gap-sm mb-xs">
+                            <h3 class="app-title">${escapeHtml(project.title)}</h3>
+                            ${langHtml}
+                        </div>
+                        <p class="app-desc">${escapeHtml(project.description || 'No description provided.')}</p>
+                    </div>
+                    <div class="flex gap-sm items-center mt-md" style="flex-wrap: wrap;">
+                        ${launchBtnHtml}
+                        ${sourceBtnHtml}
+                    </div>
+                `;
+
+                grid.appendChild(card);
+            });
+        }
+
+        // Clear search
+        window.clearSearch = function () {
+            const input = document.getElementById('repoSearchInput');
+            if (input) {
+                input.value = '';
+                filterProjects('');
+            }
+        };
+
+        // Filter projects by query string
+        function filterProjects(query) {
+            const q = (query || '').toLowerCase().trim();
+            if (!q) {
+                renderApps(allProjects);
+                return;
+            }
+
+            const filtered = allProjects.filter(p => {
+                const title = (p.title || '').toLowerCase();
+                const desc = (p.description || '').toLowerCase();
+                const lang = (p.language || '').toLowerCase();
+                return title.includes(q) || desc.includes(q) || lang.includes(q);
+            });
+
+            renderApps(filtered);
+        }
+
+        // Fetch all public repositories from GitHub with pagination support
+        async function fetchGitHubRepositories() {
+            const username = 'Swopnab';
+            const repos = [];
+            let page = 1;
+            const perPage = 100;
+
+            try {
+                while (true) {
+                    const response = await fetch(`https://api.github.com/users/${username}/repos?per_page=${perPage}&page=${page}&sort=updated`, {
+                        headers: {
+                            'Accept': 'application/vnd.github.v3+json'
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`GitHub API returned status ${response.status}`);
+                    }
+
+                    const pageData = await response.json();
+                    if (!Array.isArray(pageData) || pageData.length === 0) {
+                        break;
+                    }
+
+                    repos.push(...pageData);
+
+                    // If less than perPage returned, reached the last page
+                    if (pageData.length < perPage) {
+                        break;
+                    }
+
+                    page++;
+                    // Safety ceiling
+                    if (page > 10) break;
+                }
+
+                return repos;
+            } catch (err) {
+                console.error('Error loading GitHub repositories:', err);
+                throw err;
+            }
+        }
+
+        // Load all dashboard projects (Built-in Music Player + GitHub Repositories)
+        async function loadAllProjects() {
+            const grid = document.getElementById('appsGrid');
+            allProjects = [];
+
+            // 1. Built-in Music Player App (Always present)
+            const musicPlayerApp = {
+                title: '🎵 Music Player',
+                description: 'Stream and search unlimited music via Audius API with a custom player interface.',
+                language: 'Audius Stream',
+                launchUrl: 'music-player.html',
+                sourceUrl: null,
+                isFeatured: true,
+                isExternal: false,
+                accentColor: '#fa2d48',
+                buttonStyle: 'background: linear-gradient(135deg, #fa2d48 0%, #ff6a88 100%); border: none;'
+            };
+            allProjects.push(musicPlayerApp);
+
+            try {
+                const repos = await fetchGitHubRepositories();
+
+                repos.forEach(repo => {
+                    // Skip current auth repo to avoid confusion with the built-in Music Player
+                    const repoNameLower = (repo.name || '').toLowerCase();
+                    if (repoNameLower === 'jwt-auth-service-plus-rbac') {
+                        return;
+                    }
+
+                    // Determine deployment URL if GitHub Pages or homepage is available
+                    let launchUrl = null;
+                    if (repo.has_pages) {
+                        launchUrl = `https://swopnab.github.io/${repo.name}/`;
+                    } else if (repo.homepage && typeof repo.homepage === 'string' && repo.homepage.startsWith('http')) {
+                        launchUrl = repo.homepage;
+                    }
+
+                    allProjects.push({
+                        title: formatRepoTitle(repo.name),
+                        description: repo.description || 'Public GitHub repository.',
+                        language: repo.language || '',
+                        launchUrl: launchUrl,
+                        sourceUrl: repo.html_url,
+                        isFeatured: false,
+                        isExternal: true
+                    });
+                });
+
+                renderApps(allProjects);
+            } catch (err) {
+                // Render with just the built-in app and an error notice for GitHub API
+                renderApps(allProjects);
+                if (grid) {
+                    const errorNotice = document.createElement('div');
+                    errorNotice.className = 'state-container';
+                    errorNotice.style.padding = '20px';
+                    errorNotice.innerHTML = `
+                        <p style="color: var(--color-error); font-size: 0.85rem; margin-bottom: 8px;">
+                            Could not load additional GitHub repositories (${escapeHtml(err.message)}).
+                        </p>
+                        <button onclick="loadAllProjects()" class="btn btn-sm btn-primary">Retry</button>
+                    `;
+                    grid.appendChild(errorNotice);
+                }
+            }
+        }
+
+        // Initialize Dashboard & Nickname Logic
         (async () => {
             const isAuth = await requireAuth();
             if (!isAuth) return;
 
-            const user = getCurrentUser();
+            let user = getCurrentUser();
 
-            if (user) {
-                // Update UI with user data
-                document.getElementById('userEmail').textContent = user.email || '';
-                document.getElementById('welcomeEmail').textContent = user.email || '';
+            // Refresh user profile in background to get latest nickname
+            try {
+                if (typeof getProfile === 'function') {
+                    const profileData = await getProfile();
+                    if (profileData) user = getCurrentUser();
+                }
+            } catch (e) {
+                console.warn('Could not refresh profile:', e);
+            }
+
+            function updateUserDisplay(userData) {
+                if (!userData) return;
+
+                const displayName = userData.nickname && userData.nickname.trim()
+                    ? userData.nickname.trim()
+                    : (userData.email || 'User');
+
+                document.getElementById('userDisplayName').textContent = displayName;
+                document.getElementById('userEmail').textContent = userData.email || '';
 
                 // Email verification status
                 const emailStatus = document.getElementById('emailStatus');
-                if (user.email_verified) {
-                    emailStatus.innerHTML = '<span class="badge badge-success">Verified ✓</span>';
+                if (userData.email_verified) {
+                    emailStatus.innerHTML = '<span class="badge badge-success" style="font-size: var(--font-size-xs); padding: 2px 8px;">Verified ✓</span>';
                 } else {
-                    emailStatus.innerHTML = '<span class="badge" style="background: #fef3c7; color: #92400e;">Unverified</span>';
+                    emailStatus.innerHTML = '<span class="badge" style="background: #fef3c7; color: #92400e; font-size: var(--font-size-xs); padding: 2px 8px;">Unverified</span>';
                 }
 
                 // Roles
                 const rolesContainer = document.getElementById('rolesContainer');
                 rolesContainer.innerHTML = '';
-                (user.roles || []).forEach(role => {
+                (userData.roles || []).forEach(role => {
                     const roleName = typeof role === 'string' ? role : role.name;
                     const badge = document.createElement('span');
                     badge.className = 'badge badge-info';
+                    badge.style.fontSize = 'var(--font-size-xs)';
+                    badge.style.padding = '2px 8px';
                     badge.textContent = roleName;
                     rolesContainer.appendChild(badge);
                 });
 
-                // Permissions count
-                const permissions = user.permissions || [];
+                // Permissions count & list
+                const permissions = userData.permissions || [];
                 document.getElementById('permissionCount').textContent = `${permissions.length} permissions`;
 
-                // Permissions list
                 const permissionsContainer = document.getElementById('permissionsContainer');
-                permissionsContainer.innerHTML = '';
-                permissions.forEach(permission => {
-                    const permName = typeof permission === 'string' ? permission : permission.name;
-                    const badge = document.createElement('span');
-                    badge.className = 'badge badge-success';
-                    badge.style.fontSize = 'var(--font-size-xs)';
-                    badge.textContent = permName;
-                    permissionsContainer.appendChild(badge);
+                if (permissionsContainer) {
+                    permissionsContainer.innerHTML = '';
+                    permissions.forEach(permission => {
+                        const permName = typeof permission === 'string' ? permission : permission.name;
+                        const badge = document.createElement('span');
+                        badge.className = 'badge badge-success';
+                        badge.style.fontSize = 'var(--font-size-xs)';
+                        badge.textContent = permName;
+                        permissionsContainer.appendChild(badge);
+                    });
+                }
+            }
+
+            updateUserDisplay(user);
+
+            // Nickname Edit Form Handlers
+            const editBtn = document.getElementById('editNicknameBtn');
+            const form = document.getElementById('nicknameEditForm');
+            const input = document.getElementById('nicknameInput');
+            const saveBtn = document.getElementById('saveNicknameBtn');
+            const cancelBtn = document.getElementById('cancelNicknameBtn');
+
+            if (editBtn && form && input && saveBtn && cancelBtn) {
+                editBtn.addEventListener('click', () => {
+                    input.value = user.nickname || '';
+                    form.classList.remove('hidden');
+                    input.focus();
+                });
+
+                cancelBtn.addEventListener('click', () => {
+                    form.classList.add('hidden');
+                });
+
+                saveBtn.addEventListener('click', async () => {
+                    const newNickname = input.value.trim();
+                    saveBtn.disabled = true;
+                    saveBtn.textContent = 'Saving...';
+
+                    try {
+                        await updateNickname(newNickname || null);
+                        user = getCurrentUser();
+                        updateUserDisplay(user);
+                        form.classList.add('hidden');
+                        if (typeof showToast === 'function') {
+                            showToast('Nickname updated successfully', 'success');
+                        }
+                    } catch (err) {
+                        if (typeof showToast === 'function') {
+                            showToast(err.message || 'Failed to update nickname', 'error');
+                        } else {
+                            alert(err.message || 'Failed to update nickname');
+                        }
+                    } finally {
+                        saveBtn.disabled = false;
+                        saveBtn.textContent = 'Save';
+                    }
+                });
+
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') saveBtn.click();
+                    if (e.key === 'Escape') cancelBtn.click();
                 });
             }
+
+            // Search filter handler
+            const searchInput = document.getElementById('repoSearchInput');
+            if (searchInput) {
+                searchInput.addEventListener('input', (e) => {
+                    filterProjects(e.target.value);
+                });
+            }
+
+            // Load GitHub projects
+            loadAllProjects();
         })();
     </script>
 </body>

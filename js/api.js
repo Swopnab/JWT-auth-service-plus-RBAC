@@ -395,3 +395,90 @@ async function revokeAllSessions() {
         method: 'DELETE'
     });
 }
+
+// User-Isolated Settings API
+async function getUserSettings() {
+    return apiRequest('/settings');
+}
+
+async function updateUserSettings(settings) {
+    return apiRequest('/settings', {
+        method: 'PUT',
+        body: JSON.stringify(settings)
+    });
+}
+
+// User-Isolated Jobs API (Job Tracker)
+async function getJobs(status) {
+    const query = status ? `?status=${encodeURIComponent(status)}` : '';
+    return apiRequest(`/jobs${query}`);
+}
+
+async function createJob(jobData) {
+    return apiRequest('/jobs', {
+        method: 'POST',
+        body: JSON.stringify(jobData)
+    });
+}
+
+async function getJob(jobId) {
+    return apiRequest(`/jobs/${jobId}`);
+}
+
+async function updateJob(jobId, jobData) {
+    return apiRequest(`/jobs/${jobId}`, {
+        method: 'PUT',
+        body: JSON.stringify(jobData)
+    });
+}
+
+async function deleteJob(jobId) {
+    return apiRequest(`/jobs/${jobId}`, {
+        method: 'DELETE'
+    });
+}
+
+// User-Isolated Favorites API
+async function getFavorites(type) {
+    const query = type ? `?type=${encodeURIComponent(type)}` : '';
+    return apiRequest(`/favorites${query}`);
+}
+
+async function addFavorite(favoriteData) {
+    return apiRequest('/favorites', {
+        method: 'POST',
+        body: JSON.stringify(favoriteData)
+    });
+}
+
+async function removeFavorite(favoriteId) {
+    return apiRequest(`/favorites/${favoriteId}`, {
+        method: 'DELETE'
+    });
+}
+
+// User Profile & Nickname API
+async function getProfile() {
+    const data = await apiRequest('/me');
+    if (data) {
+        const currentUser = getCurrentUser() || {};
+        const updated = { ...currentUser, ...data };
+        sessionStorage.setItem('user', JSON.stringify(updated));
+    }
+    return data;
+}
+
+async function updateNickname(nickname) {
+    const data = await apiRequest('/nickname', {
+        method: 'PUT',
+        body: JSON.stringify({ nickname })
+    });
+    if (data && data.user) {
+        const currentUser = getCurrentUser() || {};
+        currentUser.nickname = data.user.nickname;
+        sessionStorage.setItem('user', JSON.stringify(currentUser));
+    }
+    return data;
+}
+
+

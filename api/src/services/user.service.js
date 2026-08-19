@@ -161,6 +161,19 @@ export class UserService {
     }
 
     /**
+     * Update user nickname
+     * @param {number} userId - User ID
+     * @param {string|null} nickname - Nickname or null
+     * @returns {Promise<void>}
+     */
+    async updateNickname(userId, nickname) {
+        await this.db
+            .prepare('UPDATE users SET nickname = ?, updated_at = datetime(\'now\') WHERE id = ?')
+            .bind(nickname, userId)
+            .run();
+    }
+
+    /**
      * Update user password
      * @param {number} userId - User ID
      * @param {string} newPasswordHash - New hashed password

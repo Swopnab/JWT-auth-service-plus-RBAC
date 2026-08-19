@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   email TEXT NOT NULL UNIQUE,
   password_hash TEXT NOT NULL,
+  nickname TEXT,
   email_verified INTEGER DEFAULT 0,
   created_at TEXT DEFAULT (datetime('now')),
   updated_at TEXT DEFAULT (datetime('now'))
@@ -141,3 +142,56 @@ CREATE TABLE IF NOT EXISTS trusted_devices (
 
 CREATE INDEX idx_trusted_devices_user_id ON trusted_devices(user_id);
 CREATE INDEX idx_trusted_devices_fingerprint ON trusted_devices(device_fingerprint);
+
+-- Jobs table (user-isolated data for Job Tracker)
+CREATE TABLE IF NOT EXISTS jobs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL,
+  company TEXT NOT NULL,
+  position TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'Applied',
+  salary TEXT,
+  location TEXT,
+  job_url TEXT,
+  notes TEXT,
+  applied_at TEXT DEFAULT (datetime('now')),
+  created_at TEXT DEFAULT (datetime('now')),
+  updated_at TEXT DEFAULT (datetime('now')),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_jobs_user_id ON jobs(user_id);
+CREATE INDEX IF NOT EXISTS idx_jobs_user_id_status ON jobs(user_id, status);
+
+-- User Favorites table (user-isolated data for playlists/favorites)
+CREATE TABLE IF NOT EXISTS user_favorites (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL,
+  item_type TEXT NOT NULL,
+  item_id TEXT NOT NULL,
+  title TEXT NOT NULL,
+  artist TEXT,
+  artwork_url TEXT,
+  stream_url TEXT,
+  duration INTEGER,
+  created_at TEXT DEFAULT (datetime('now')),
+  UNIQUE(user_id, item_type, item_id),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_favorites_user_id ON user_favorites(user_id);
+
+-- User Settings table (user-isolated preferences)
+CREATE TABLE IF NOT EXISTS user_settings (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL UNIQUE,
+  theme TEXT DEFAULT 'dark',
+  notifications_enabled INTEGER DEFAULT 1,
+  dashboard_layout TEXT,
+  created_at TEXT DEFAULT (datetime('now')),
+  updated_at TEXT DEFAULT (datetime('now')),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_settings_user_id ON user_settings(user_id);
+
