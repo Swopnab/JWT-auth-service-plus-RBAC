@@ -42,26 +42,26 @@ function isTokenExpired(token) {
 }
 
 /**
- * Check if the user is authenticated with a valid or refreshable token
+ * Check if the user is authenticated with a valid or refreshable token in sessionStorage
  * @returns {boolean}
  */
 function isLoggedIn() {
-    const accessToken = localStorage.getItem('accessToken');
+    const accessToken = sessionStorage.getItem('accessToken');
     if (!accessToken) return false;
     if (isTokenExpired(accessToken)) {
-        return !!localStorage.getItem('refreshToken');
+        return !!sessionStorage.getItem('refreshToken');
     }
     return true;
 }
 
 /**
- * Get current user information from token payload / storage
+ * Get current user information from token payload / sessionStorage
  * @returns {object|null}
  */
 function getCurrentUser() {
-    const token = localStorage.getItem('accessToken');
+    const token = sessionStorage.getItem('accessToken');
     const payload = parseJwt(token);
-    const userStr = localStorage.getItem('user');
+    const userStr = sessionStorage.getItem('user');
 
     let storedUser = null;
     if (userStr) {
@@ -108,9 +108,13 @@ function hasPermission(permissionName) {
 }
 
 /**
- * Clear all authentication tokens and state from local storage
+ * Clear all authentication tokens and session state from storage
  */
 function clearAuth() {
+    sessionStorage.removeItem('accessToken');
+    sessionStorage.removeItem('refreshToken');
+    sessionStorage.removeItem('user');
+    // Also clean up any legacy localStorage entries to prevent accidental leaks
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('user');
@@ -127,17 +131,17 @@ function redirectToLogin() {
 
 /**
  * Route Guard: protect pages requiring authentication
- * Verifies JWT validity, refreshes token if expired, redirects if unauthenticated
+ * Verifies JWT validity in sessionStorage, refreshes token if expired, redirects if unauthenticated
  * @param {object} [options]
  * @param {string} [options.requiredRole]
  * @param {string} [options.requiredPermission]
  * @returns {Promise<boolean>}
  */
 async function requireAuth(options = {}) {
-    const accessToken = localStorage.getItem('accessToken');
-    const refreshToken = localStorage.getItem('refreshToken');
+    const accessToken = sessionStorage.getItem('accessToken');
+    const refreshToken = sessionStorage.getItem('refreshToken');
 
-    // 1. If no tokens exist at all, clear and redirect to login
+    // 1. If no tokens exist at all in sessionStorage, clear and redirect to login
     if (!accessToken && !refreshToken) {
         clearAuth();
         redirectToLogin();
@@ -154,7 +158,7 @@ async function requireAuth(options = {}) {
                 redirectToLogin();
                 return false;
             }
-            validToken = localStorage.getItem('accessToken');
+            validToken = sessionStorage.getItem('accessToken');
         } else {
             clearAuth();
             redirectToLogin();
@@ -183,9 +187,9 @@ async function requireAuth(options = {}) {
         return false;
     }
 
-    // 5. Keep user profile in sync
-    if (!localStorage.getItem('user')) {
-        localStorage.setItem('user', JSON.stringify({
+    // 5. Keep user profile in sync in sessionStorage
+    if (!sessionStorage.getItem('user')) {
+        sessionStorage.setItem('user', JSON.stringify({
             id: payload.sub,
             email: payload.email,
             roles: payload.roles || [],
@@ -200,8 +204,8 @@ async function requireAuth(options = {}) {
  * Redirect already authenticated users away from auth pages (login/register)
  */
 async function redirectIfLoggedIn() {
-    const accessToken = localStorage.getItem('accessToken');
-    const refreshToken = localStorage.getItem('refreshToken');
+    const accessToken = sessionStorage.getItem('accessToken');
+    const refreshToken = sessionStorage.getItem('refreshToken');
 
     if (!accessToken && !refreshToken) {
         return;
@@ -234,11 +238,11 @@ async function apiRequest(endpoint, options = {}) {
     };
 
     // Add access token if available
-    let accessToken = localStorage.getItem('accessToken');
+    let accessToken = sessionStorage.getItem('accessToken');
     if (accessToken && isTokenExpired(accessToken)) {
         const refreshed = await refreshAccessToken();
         if (refreshed) {
-            accessToken = localStorage.getItem('accessToken');
+            accessToken = sessionStorage.getItem('accessToken');
         }
     }
 
@@ -281,10 +285,10 @@ async function login(email, password) {
         body: JSON.stringify({ email, password })
     });
 
-    // Store tokens
-    localStorage.setItem('accessToken', data.accessToken);
-    localStorage.setItem('refreshToken', data.refreshToken);
-    localStorage.setItem('user', JSON.stringify(data.user));
+    // Store tokens and user session in sessionStorage (cleared when browser tab/window is closed)
+    sessionStorage.setItem('accessToken', data.accessToken);
+    sessionStorage.setItem('refreshToken', data.refreshToken);
+    sessionStorage.setItem('user', JSON.stringify(data.user));
 
     return data;
 }
@@ -297,7 +301,7 @@ async function register(email, password) {
 }
 
 async function refreshAccessToken() {
-    const refreshToken = localStorage.getItem('refreshToken');
+    const refreshToken = sessionStorage.getItem('refreshToken');
     if (!refreshToken) return false;
 
     try {
@@ -315,9 +319,9 @@ async function refreshAccessToken() {
         }
 
         const data = await response.json();
-        localStorage.setItem('accessToken', data.accessToken);
+        sessionStorage.setItem('accessToken', data.accessToken);
         if (data.refreshToken) {
-            localStorage.setItem('refreshToken', data.refreshToken);
+            sessionStorage.setItem('refreshToken', data.refreshToken);
         }
         return true;
     } catch (error) {
@@ -327,7 +331,7 @@ async function refreshAccessToken() {
 }
 
 async function logout() {
-    const refreshToken = localStorage.getItem('refreshToken');
+    const refreshToken = sessionStorage.getItem('refreshToken');
 
     try {
         if (refreshToken) {
@@ -340,7 +344,7 @@ async function logout() {
         console.error('Logout error:', error);
     }
 
-    // Clear local storage
+    // Clear session and local storage
     clearAuth();
 
     // Redirect to login
