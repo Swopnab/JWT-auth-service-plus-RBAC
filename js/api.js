@@ -1,5 +1,227 @@
-// API Configuration
-const API_BASE_URL = 'https://auth-service-api.swopnabbikram.workers.dev';
+// API Configuration - automatically switches between local development and Cloudflare Workers production
+const API_BASE_URL = (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'))
+    ? 'http://localhost:8787'
+    : 'https://auth-service-api.swopnabbikram.workers.dev';
+
+// JWT Helper Functions
+/**
+ * Safely parse a JWT payload without external libraries
+ * @param {string} token
+ * @returns {object|null}
+ */
+function parseJwt(token) {
+    if (!token || typeof token !== 'string') return null;
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    try {
+        const base64Url = parts[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(
+            atob(base64)
+                .split('')
+                .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+                .join('')
+        );
+        return JSON.parse(jsonPayload);
+    } catch (e) {
+        return null;
+    }
+}
+
+/**
+ * Check if a JWT is expired
+ * @param {string} token
+ * @returns {boolean}
+ */
+function isTokenExpired(token) {
+    const payload = parseJwt(token);
+    if (!payload || !payload.exp) return true;
+    const currentTime = Math.floor(Date.now() / 1000);
+    // Buffer by 5 seconds to prevent edge-case expiration during flight
+    return payload.exp <= (currentTime + 5);
+}
+
+/**
+ * Check if the user is authenticated with a valid or refreshable token
+ * @returns {boolean}
+ */
+function isLoggedIn() {
+    const accessToken = localStorage.getItem('accessToken');
+    if (!accessToken) return false;
+    if (isTokenExpired(accessToken)) {
+        return !!localStorage.getItem('refreshToken');
+    }
+    return true;
+}
+
+/**
+ * Get current user information from token payload / storage
+ * @returns {object|null}
+ */
+function getCurrentUser() {
+    const token = localStorage.getItem('accessToken');
+    const payload = parseJwt(token);
+    const userStr = localStorage.getItem('user');
+
+    let storedUser = null;
+    if (userStr) {
+        try {
+            storedUser = JSON.parse(userStr);
+        } catch (e) {
+            storedUser = null;
+        }
+    }
+
+    if (payload && payload.sub) {
+        return {
+            id: payload.sub,
+            email: payload.email || storedUser?.email,
+            email_verified: storedUser?.email_verified ?? false,
+            roles: payload.roles || storedUser?.roles || [],
+            permissions: payload.permissions || storedUser?.permissions || []
+        };
+    }
+
+    return storedUser;
+}
+
+/**
+ * Check if current user has a specific role (RBAC)
+ * @param {string} roleName
+ * @returns {boolean}
+ */
+function hasRole(roleName) {
+    const user = getCurrentUser();
+    if (!user || !user.roles) return false;
+    return user.roles.some(r => (typeof r === 'string' ? r : r.name) === roleName);
+}
+
+/**
+ * Check if current user has a specific permission (RBAC)
+ * @param {string} permissionName
+ * @returns {boolean}
+ */
+function hasPermission(permissionName) {
+    const user = getCurrentUser();
+    if (!user || !user.permissions) return false;
+    return user.permissions.some(p => (typeof p === 'string' ? p : p.name) === permissionName);
+}
+
+/**
+ * Clear all authentication tokens and state from local storage
+ */
+function clearAuth() {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('user');
+}
+
+/**
+ * Redirect user to login page
+ */
+function redirectToLogin() {
+    if (!window.location.pathname.endsWith('index.html') && window.location.pathname !== '/' && !window.location.pathname.endsWith('/')) {
+        window.location.href = 'index.html';
+    }
+}
+
+/**
+ * Route Guard: protect pages requiring authentication
+ * Verifies JWT validity, refreshes token if expired, redirects if unauthenticated
+ * @param {object} [options]
+ * @param {string} [options.requiredRole]
+ * @param {string} [options.requiredPermission]
+ * @returns {Promise<boolean>}
+ */
+async function requireAuth(options = {}) {
+    const accessToken = localStorage.getItem('accessToken');
+    const refreshToken = localStorage.getItem('refreshToken');
+
+    // 1. If no tokens exist at all, clear and redirect to login
+    if (!accessToken && !refreshToken) {
+        clearAuth();
+        redirectToLogin();
+        return false;
+    }
+
+    // 2. If access token is missing or expired, attempt refresh
+    let validToken = accessToken;
+    if (!validToken || isTokenExpired(validToken)) {
+        if (refreshToken) {
+            const refreshed = await refreshAccessToken();
+            if (!refreshed) {
+                clearAuth();
+                redirectToLogin();
+                return false;
+            }
+            validToken = localStorage.getItem('accessToken');
+        } else {
+            clearAuth();
+            redirectToLogin();
+            return false;
+        }
+    }
+
+    // 3. Validate token format & payload structure
+    const payload = parseJwt(validToken);
+    if (!payload || !payload.sub || isTokenExpired(validToken)) {
+        clearAuth();
+        redirectToLogin();
+        return false;
+    }
+
+    // 4. Verify RBAC requirements if specified
+    if (options.requiredRole && !hasRole(options.requiredRole)) {
+        alert('Access denied: Insufficient permissions (required role: ' + options.requiredRole + ')');
+        window.location.href = 'dashboard.html';
+        return false;
+    }
+
+    if (options.requiredPermission && !hasPermission(options.requiredPermission)) {
+        alert('Access denied: Insufficient permissions (required permission: ' + options.requiredPermission + ')');
+        window.location.href = 'dashboard.html';
+        return false;
+    }
+
+    // 5. Keep user profile in sync
+    if (!localStorage.getItem('user')) {
+        localStorage.setItem('user', JSON.stringify({
+            id: payload.sub,
+            email: payload.email,
+            roles: payload.roles || [],
+            permissions: payload.permissions || []
+        }));
+    }
+
+    return true;
+}
+
+/**
+ * Redirect already authenticated users away from auth pages (login/register)
+ */
+async function redirectIfLoggedIn() {
+    const accessToken = localStorage.getItem('accessToken');
+    const refreshToken = localStorage.getItem('refreshToken');
+
+    if (!accessToken && !refreshToken) {
+        return;
+    }
+
+    if (accessToken && !isTokenExpired(accessToken)) {
+        window.location.href = 'dashboard.html';
+        return;
+    }
+
+    if (refreshToken) {
+        const refreshed = await refreshAccessToken();
+        if (refreshed) {
+            window.location.href = 'dashboard.html';
+            return;
+        }
+    }
+
+    clearAuth();
+}
 
 // API Helper Functions
 async function apiRequest(endpoint, options = {}) {
@@ -12,7 +234,14 @@ async function apiRequest(endpoint, options = {}) {
     };
 
     // Add access token if available
-    const accessToken = localStorage.getItem('accessToken');
+    let accessToken = localStorage.getItem('accessToken');
+    if (accessToken && isTokenExpired(accessToken)) {
+        const refreshed = await refreshAccessToken();
+        if (refreshed) {
+            accessToken = localStorage.getItem('accessToken');
+        }
+    }
+
     if (accessToken) {
         config.headers['Authorization'] = `Bearer ${accessToken}`;
     }
@@ -23,7 +252,7 @@ async function apiRequest(endpoint, options = {}) {
 
         if (!response.ok) {
             // Handle 401 - try to refresh token
-            if (response.status === 401 && endpoint !== '/auth/refresh') {
+            if (response.status === 401 && endpoint !== '/auth/refresh' && endpoint !== '/auth/login') {
                 const refreshed = await refreshAccessToken();
                 if (refreshed) {
                     // Retry original request with new token
@@ -72,15 +301,27 @@ async function refreshAccessToken() {
     if (!refreshToken) return false;
 
     try {
-        const data = await apiRequest('/auth/refresh', {
+        const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
             method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
             body: JSON.stringify({ refreshToken })
         });
 
+        if (!response.ok) {
+            clearAuth();
+            return false;
+        }
+
+        const data = await response.json();
         localStorage.setItem('accessToken', data.accessToken);
-        localStorage.setItem('refreshToken', data.refreshToken);
+        if (data.refreshToken) {
+            localStorage.setItem('refreshToken', data.refreshToken);
+        }
         return true;
     } catch (error) {
+        clearAuth();
         return false;
     }
 }
@@ -100,9 +341,7 @@ async function logout() {
     }
 
     // Clear local storage
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('user');
+    clearAuth();
 
     // Redirect to login
     window.location.href = 'index.html';
@@ -130,7 +369,7 @@ async function resetPassword(token, newPassword) {
 }
 
 async function changePassword(currentPassword, newPassword) {
-    return apiRequest('/auth/change-password', {
+    return apiRequest('/change-password', {
         method: 'POST',
         body: JSON.stringify({ currentPassword, newPassword })
     });
@@ -138,42 +377,17 @@ async function changePassword(currentPassword, newPassword) {
 
 // User API
 async function getSessions() {
-    return apiRequest('/user/sessions');
+    return apiRequest('/sessions');
 }
 
 async function revokeSession(sessionId) {
-    return apiRequest(`/user/sessions/${sessionId}`, {
+    return apiRequest(`/sessions/${sessionId}`, {
         method: 'DELETE'
     });
 }
 
 async function revokeAllSessions() {
-    return apiRequest('/user/sessions', {
+    return apiRequest('/sessions', {
         method: 'DELETE'
     });
-}
-
-// Helper to check if user is logged in
-function isLoggedIn() {
-    return !!localStorage.getItem('accessToken');
-}
-
-// Helper to get current user
-function getCurrentUser() {
-    const userStr = localStorage.getItem('user');
-    return userStr ? JSON.parse(userStr) : null;
-}
-
-// Protect pages that require authentication
-function requireAuth() {
-    if (!isLoggedIn()) {
-        window.location.href = 'index.html';
-    }
-}
-
-// Redirect if already logged in
-function redirectIfLoggedIn() {
-    if (isLoggedIn()) {
-        window.location.href = 'dashboard.html';
-    }
 }

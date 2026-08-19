@@ -43,11 +43,13 @@
     <script src="js/toast.js"></script>
     <script src="js/api.js"></script>
     <script>
-        requireAuth();
+        (async () => {
+            const isAuth = await requireAuth();
+            if (!isAuth) return;
 
-        const container = document.getElementById('sessionsContainer');
-        const loadingSpinner = document.getElementById('loadingSpinner');
-        const revokeAllBtn = document.getElementById('revokeAllBtn');
+            const container = document.getElementById('sessionsContainer');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const revokeAllBtn = document.getElementById('revokeAllBtn');
 
         async function loadSessions() {
             try {
@@ -132,6 +134,7 @@
 
         window.revokeSingle = revokeSingle;
         loadSessions();
+    })();
     </script>
 </body>
 

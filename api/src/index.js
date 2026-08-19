@@ -34,6 +34,7 @@ app.get('/health', (c) => {
 
 // Mount routes
 app.route('/auth', auth);
+app.route('/user', user);
 app.route('/', user); // /me, /sessions
 app.route('/admin', admin);
 

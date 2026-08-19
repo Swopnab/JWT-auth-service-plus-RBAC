@@ -82,20 +82,28 @@
         <audio id="audioPlayer"></audio>
     </div>
 
-    <!-- JWT Auth Protection -->
+    <!-- JWT Auth Protection & Music Player Logic -->
     <script src="js/api.js"></script>
-    <script>
-        // Protect this page - redirect if not logged in
-        requireAuth();
-
-        // Logout handler
-        document.getElementById('logoutBtn').addEventListener('click', () => {
-            logout();
-        });
-    </script>
-
-    <!-- Music Player Logic -->
     <script src="js/music-player/app.js"></script>
+    <script>
+        (async () => {
+            const isAuth = await requireAuth();
+            if (!isAuth) return;
+
+            // Logout handler
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', () => {
+                    logout();
+                });
+            }
+
+            // Init music player only after successful authentication
+            if (typeof initMusicPlayer === 'function') {
+                initMusicPlayer();
+            }
+        })();
+    </script>
 </body>
 
 </html>

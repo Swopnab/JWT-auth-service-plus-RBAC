@@ -156,4 +156,4 @@ volumeBar.addEventListener('input', (e) => {
 updateSliderFill(volumeBar);
 
 // Init
-fetchSongs();
+window.initMusicPlayer = fetchSongs;

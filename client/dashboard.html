@@ -73,45 +73,53 @@
     <script src="js/toast.js"></script>
     <script src="js/api.js"></script>
     <script>
-        requireAuth();
+        (async () => {
+            const isAuth = await requireAuth();
+            if (!isAuth) return;
 
-        const user = getCurrentUser();
+            const user = getCurrentUser();
 
-        if (user) {
-            // Update UI with user data
-            document.getElementById('userEmail').textContent = user.email;
-            document.getElementById('welcomeEmail').textContent = user.email;
+            if (user) {
+                // Update UI with user data
+                document.getElementById('userEmail').textContent = user.email || '';
+                document.getElementById('welcomeEmail').textContent = user.email || '';
 
-            // Email verification status
-            const emailStatus = document.getElementById('emailStatus');
-            if (user.email_verified) {
-                emailStatus.innerHTML = '<span class="badge badge-success">Verified ✓</span>';
-            } else {
-                emailStatus.innerHTML = '<span class="badge" style="background: #fef3c7; color: #92400e;">Unverified</span>';
+                // Email verification status
+                const emailStatus = document.getElementById('emailStatus');
+                if (user.email_verified) {
+                    emailStatus.innerHTML = '<span class="badge badge-success">Verified ✓</span>';
+                } else {
+                    emailStatus.innerHTML = '<span class="badge" style="background: #fef3c7; color: #92400e;">Unverified</span>';
+                }
+
+                // Roles
+                const rolesContainer = document.getElementById('rolesContainer');
+                rolesContainer.innerHTML = '';
+                (user.roles || []).forEach(role => {
+                    const roleName = typeof role === 'string' ? role : role.name;
+                    const badge = document.createElement('span');
+                    badge.className = 'badge badge-info';
+                    badge.textContent = roleName;
+                    rolesContainer.appendChild(badge);
+                });
+
+                // Permissions count
+                const permissions = user.permissions || [];
+                document.getElementById('permissionCount').textContent = `${permissions.length} permissions`;
+
+                // Permissions list
+                const permissionsContainer = document.getElementById('permissionsContainer');
+                permissionsContainer.innerHTML = '';
+                permissions.forEach(permission => {
+                    const permName = typeof permission === 'string' ? permission : permission.name;
+                    const badge = document.createElement('span');
+                    badge.className = 'badge badge-success';
+                    badge.style.fontSize = 'var(--font-size-xs)';
+                    badge.textContent = permName;
+                    permissionsContainer.appendChild(badge);
+                });
             }
-
-            // Roles
-            const rolesContainer = document.getElementById('rolesContainer');
-            user.roles.forEach(role => {
-                const badge = document.createElement('span');
-                badge.className = 'badge badge-info';
-                badge.textContent = role;
-                rolesContainer.appendChild(badge);
-            });
-
-            // Permissions count
-            document.getElementById('permissionCount').textContent = `${user.permissions.length} permissions`;
-
-            // Permissions list
-            const permissionsContainer = document.getElementById('permissionsContainer');
-            user.permissions.forEach(permission => {
-                const badge = document.createElement('span');
-                badge.className = 'badge badge-success';
-                badge.style.fontSize = 'var(--font-size-xs)';
-                badge.textContent = permission;
-                permissionsContainer.appendChild(badge);
-            });
-        }
+        })();
     </script>
 </body>
 
