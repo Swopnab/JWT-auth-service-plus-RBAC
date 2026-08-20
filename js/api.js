@@ -481,4 +481,121 @@ async function updateNickname(nickname) {
     return data;
 }
 
+// ============================================
+// Zabum AI Assistant API Client
+// ============================================
+
+// Configurable Zabum AI Backend URL (Can be customized via localStorage or window.AI_API_URL)
+let DEFAULT_AI_API_URL = window.AI_API_URL || localStorage.getItem('zabum_ai_api_url') || 'http://localhost:5001';
+
+function getAiApiUrl() {
+    return localStorage.getItem('zabum_ai_api_url') || DEFAULT_AI_API_URL;
+}
+
+function setAiApiUrl(url) {
+    if (url) {
+        localStorage.setItem('zabum_ai_api_url', url.trim().replace(/\/+$/, ''));
+    } else {
+        localStorage.removeItem('zabum_ai_api_url');
+    }
+}
+
+async function aiApiRequest(endpoint, options = {}) {
+    const token = getAccessToken();
+    const baseUrl = getAiApiUrl();
+
+    const headers = {
+        'Content-Type': 'application/json',
+        ...options.headers,
+    };
+
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    try {
+        const response = await fetch(`${baseUrl}${endpoint}`, {
+            ...options,
+            headers,
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            const errorMsg = data.error || `AI Request failed with status ${response.status}`;
+            const err = new Error(errorMsg);
+            err.status = response.status;
+            err.code = data.code;
+            throw err;
+        }
+
+        return data;
+    } catch (error) {
+        if (error.name === 'TypeError' && error.message.includes('fetch')) {
+            const err = new Error('Zabum AI backend is offline. Ensure Flask server is running on ' + baseUrl);
+            err.isOffline = true;
+            throw err;
+        }
+        throw error;
+    }
+}
+
+async function getAiStatus() {
+    return aiApiRequest('/api/status');
+}
+
+async function sendChatMessage(message, conversationId = null) {
+    return aiApiRequest('/api/chat', {
+        method: 'POST',
+        body: JSON.stringify({
+            message,
+            conversation_id: conversationId
+        })
+    });
+}
+
+async function getAiConversations() {
+    return aiApiRequest('/api/conversations');
+}
+
+async function getAiConversation(convId) {
+    return aiApiRequest(`/api/conversations/${convId}`);
+}
+
+async function createAiConversation(title = 'New Chat') {
+    return aiApiRequest('/api/conversations', {
+        method: 'POST',
+        body: JSON.stringify({ title })
+    });
+}
+
+async function updateAiConversation(convId, title) {
+    return aiApiRequest(`/api/conversations/${convId}`, {
+        method: 'PUT',
+        body: JSON.stringify({ title })
+    });
+}
+
+async function deleteAiConversation(convId) {
+    return aiApiRequest(`/api/conversations/${convId}`, {
+        method: 'DELETE'
+    });
+}
+
+async function getAiMemories(category = null, search = null) {
+    let query = '';
+    const params = new URLSearchParams();
+    if (category) params.append('category', category);
+    if (search) params.append('q', search);
+    if (params.toString()) query = `?${params.toString()}`;
+    return aiApiRequest(`/api/memories${query}`);
+}
+
+async function deleteAiMemory(memId) {
+    return aiApiRequest(`/api/memories/${memId}`, {
+        method: 'DELETE'
+    });
+}
+
+
 

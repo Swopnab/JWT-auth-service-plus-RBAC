@@ -242,4 +242,27 @@ auth.post('/reset-password', async (c) => {
     return c.json({ message: 'Password reset successful. Please log in with your new password.' });
 });
 
+// GET or POST /auth/verify - Verify token and return user identity with roles and permissions
+const handleVerify = async (c) => {
+    const { user } = getAuthContext(c);
+
+    const roles = (user.roles || []).map(r => typeof r === 'string' ? r : r.name);
+    const permissions = (user.permissions || []).map(p => typeof p === 'string' ? p : p.name);
+
+    return c.json({
+        valid: true,
+        user: {
+            id: user.id,
+            email: user.email,
+            nickname: user.nickname || null,
+            email_verified: user.email_verified === 1,
+            roles,
+            permissions
+        }
+    });
+};
+
+auth.get('/verify', authMiddleware, handleVerify);
+auth.post('/verify', authMiddleware, handleVerify);
+
 export default auth;

@@ -26,6 +26,7 @@ export default defineConfig({
                 main: resolve(__dirname, 'index.html'),
                 dashboard: resolve(__dirname, 'dashboard.html'),
                 musicPlayer: resolve(__dirname, 'music-player.html'),
+                aiAssistant: resolve(__dirname, 'ai-assistant.html'),
                 sessions: resolve(__dirname, 'sessions.html'),
                 register: resolve(__dirname, 'register.html'),
                 forgotPassword: resolve(__dirname, 'forgot-password.html'),

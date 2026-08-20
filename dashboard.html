@@ -322,7 +322,7 @@
 
                 const launchBtnHtml = project.launchUrl ? `
                     <a href="${escapeHtml(project.launchUrl)}" ${project.isExternal ? 'target="_blank" rel="noopener noreferrer"' : ''} class="btn btn-primary btn-sm" style="${project.buttonStyle || ''}">
-                        Launch App
+                        ${escapeHtml(project.buttonText || 'Launch App')}
                     </a>
                 ` : '';
 
@@ -420,12 +420,27 @@
             }
         }
 
-        // Load all dashboard projects (Built-in Music Player + GitHub Repositories)
+        // Load all dashboard projects (Zabum AI + Built-in Music Player + GitHub Repositories)
         async function loadAllProjects() {
             const grid = document.getElementById('appsGrid');
             allProjects = [];
 
-            // 1. Built-in Music Player App (Always present)
+            // 1. Zabum AI Assistant App (Protected Application)
+            const zabumAiApp = {
+                title: '🧠 Zabum AI Assistant',
+                description: 'Personal AI assistant powered locally by Llama 3.2 with conversation memory and knowledge retrieval.',
+                language: 'Llama 3.2 • Python',
+                launchUrl: 'ai-assistant.html',
+                sourceUrl: 'https://github.com/Swopnab/Zabum-AI',
+                isFeatured: true,
+                isExternal: false,
+                accentColor: '#3b82f6',
+                buttonText: 'Launch Assistant',
+                buttonStyle: 'background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%); border: none;'
+            };
+            allProjects.push(zabumAiApp);
+
+            // 2. Built-in Music Player App (Always present)
             const musicPlayerApp = {
                 title: '🎵 Music Player',
                 description: 'Stream and search unlimited music via Audius API with a custom player interface.',
@@ -435,6 +450,7 @@
                 isFeatured: true,
                 isExternal: false,
                 accentColor: '#fa2d48',
+                buttonText: 'Launch App',
                 buttonStyle: 'background: linear-gradient(135deg, #fa2d48 0%, #ff6a88 100%); border: none;'
             };
             allProjects.push(musicPlayerApp);
@@ -443,9 +459,9 @@
                 const repos = await fetchGitHubRepositories();
 
                 repos.forEach(repo => {
-                    // Skip current auth repo to avoid confusion with the built-in Music Player
+                    // Skip current auth repo and Zabum-AI to avoid duplication with built-in app cards
                     const repoNameLower = (repo.name || '').toLowerCase();
-                    if (repoNameLower === 'jwt-auth-service-plus-rbac') {
+                    if (repoNameLower === 'jwt-auth-service-plus-rbac' || repoNameLower === 'zabum-ai') {
                         return;
                     }
 
@@ -470,7 +486,7 @@
 
                 renderApps(allProjects);
             } catch (err) {
-                // Render with just the built-in app and an error notice for GitHub API
+                // Render with just the built-in apps and an error notice for GitHub API
                 renderApps(allProjects);
                 if (grid) {
                     const errorNotice = document.createElement('div');

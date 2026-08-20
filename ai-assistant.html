@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zabum AI Assistant - Personal AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        :root {
+            --ai-primary: #3b82f6;
+            --ai-primary-hover: #2563eb;
+            --ai-accent: #6366f1;
+            --ai-bubble-user: #1e3a8a;
+            --ai-bubble-bot: #1f2937;
+            --sidebar-width: 280px;
+        }
+
+        body.ai-page {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            font-family: 'Inter', sans-serif;
+        }
+
+        .ai-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 20px;
+            background: var(--color-bg-secondary);
+            border-bottom: 1px solid var(--color-border);
+            height: 60px;
+            box-sizing: border-box;
+            z-index: 10;
+        }
+
+        .ai-header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .ai-logo {
+            font-size: 1.25rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--color-text);
+            text-decoration: none;
+        }
+
+        .ai-subtitle {
+            font-size: 0.75rem;
+            color: var(--color-text-secondary);
+            background: rgba(99, 102, 241, 0.15);
+            color: #818cf8;
+            padding: 2px 8px;
+            border-radius: var(--radius-full);
+            font-weight: 500;
+        }
+
+        .ai-status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75rem;
+            padding: 3px 10px;
+            border-radius: var(--radius-full);
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            transition: all 0.2s;
+        }
+
+        .ai-status-pill.offline {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            border-color: rgba(239, 68, 68, 0.2);
+        }
+
+        .ai-status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background-color: currentColor;
+        }
+
+        .ai-container {
+            display: flex;
+            flex: 1;
+            height: calc(100vh - 60px);
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .ai-sidebar {
+            width: var(--sidebar-width);
+            background: var(--color-bg-secondary);
+            border-right: 1px solid var(--color-border);
+            display: flex;
+            flex-direction: column;
+            padding: 14px;
+            box-sizing: border-box;
+            overflow: hidden;
+            transition: transform 0.2s ease;
+        }
+
+        .new-chat-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 10px 14px;
+            background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: var(--font-size-sm);
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.1s;
+        }
+
+        .new-chat-btn:hover {
+            opacity: 0.95;
+            transform: translateY(-1px);
+        }
+
+        .sidebar-search {
+            margin: 12px 0 8px;
+            position: relative;
+        }
+
+        .sidebar-search input {
+            width: 100%;
+            padding: 6px 10px 6px 28px;
+            font-size: var(--font-size-xs);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--color-border);
+            background: var(--color-bg);
+            color: var(--color-text);
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        .sidebar-search-icon {
+            position: absolute;
+            left: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.75rem;
+            color: var(--color-text-secondary);
+            pointer-events: none;
+        }
+
+        .conv-list {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-top: 6px;
+        }
+
+        .conv-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 10px;
+            border-radius: var(--radius-md);
+            font-size: var(--font-size-sm);
+            color: var(--color-text-secondary);
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s;
+            border: 1px solid transparent;
+            user-select: none;
+        }
+
+        .conv-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--color-text);
+        }
+
+        .conv-item.active {
+            background: rgba(59, 130, 246, 0.15);
+            color: #93c5fd;
+            border-color: rgba(59, 130, 246, 0.3);
+            font-weight: 500;
+        }
+
+        .conv-title {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex: 1;
+            margin-right: 6px;
+        }
+
+        .conv-actions {
+            display: none;
+            gap: 4px;
+        }
+
+        .conv-item:hover .conv-actions,
+        .conv-item.active .conv-actions {
+            display: flex;
+        }
+
+        .conv-action-btn {
+            background: none;
+            border: none;
+            color: var(--color-text-secondary);
+            cursor: pointer;
+            padding: 2px 4px;
+            font-size: 0.8rem;
+            border-radius: 4px;
+        }
+
+        .conv-action-btn:hover {
+            color: var(--color-text);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-footer {
+            border-top: 1px solid var(--color-border);
+            padding-top: 10px;
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .sidebar-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            padding: 6px 10px;
+            font-size: var(--font-size-xs);
+            color: var(--color-text-secondary);
+            background: none;
+            border: none;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            text-align: left;
+            transition: background 0.15s;
+        }
+
+        .sidebar-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--color-text);
+        }
+
+        /* Main Chat Area */
+        .ai-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: var(--color-bg);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ai-messages-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            box-sizing: border-box;
+        }
+
+        .msg-row {
+            display: flex;
+            gap: 12px;
+            max-width: 840px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .msg-row.user {
+            flex-direction: row-reverse;
+        }
+
+        .avatar-badge {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .avatar-ai {
+            background: linear-gradient(135deg, #3b82f6, #6366f1);
+            color: white;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+        }
+
+        .avatar-user {
+            background: #374151;
+            color: #e5e7eb;
+        }
+
+        .msg-content-wrapper {
+            max-width: 80%;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .msg-bubble {
+            padding: 12px 16px;
+            border-radius: 16px;
+            font-size: 0.925rem;
+            line-height: 1.55;
+            word-break: break-word;
+        }
+
+        .msg-row.assistant .msg-bubble {
+            background: var(--color-bg-secondary);
+            border: 1px solid var(--color-border);
+            color: var(--color-text);
+            border-top-left-radius: 4px;
+        }
+
+        .msg-row.user .msg-bubble {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: #ffffff;
+            border-top-right-radius: 4px;
+        }
+
+        .msg-bubble p {
+            margin: 0 0 8px;
+        }
+
+        .msg-bubble p:last-child {
+            margin-bottom: 0;
+        }
+
+        .msg-bubble pre {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 12px;
+            overflow-x: auto;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+            margin: 8px 0;
+            color: #e2e8f0;
+        }
+
+        .msg-bubble code {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85em;
+            background: rgba(0, 0, 0, 0.25);
+            padding: 2px 5px;
+            border-radius: 4px;
+        }
+
+        .msg-bubble ul,
+        .msg-bubble ol {
+            margin: 6px 0 6px 20px;
+            padding: 0;
+        }
+
+        .memory-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: var(--radius-full);
+            background: rgba(99, 102, 241, 0.2);
+            color: #a5b4fc;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            margin-top: 4px;
+        }
+
+        /* Empty State */
+        .empty-chat-state {
+            max-width: 680px;
+            margin: auto;
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .empty-chat-icon {
+            font-size: 3rem;
+            margin-bottom: 12px;
+            display: inline-block;
+            filter: drop-shadow(0 0 16px rgba(59, 130, 246, 0.4));
+        }
+
+        .suggestion-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 12px;
+            margin-top: 24px;
+            text-align: left;
+        }
+
+        .suggestion-card {
+            background: var(--color-bg-secondary);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: transform 0.15s, border-color 0.15s;
+            font-size: var(--font-size-xs);
+            color: var(--color-text-secondary);
+        }
+
+        .suggestion-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--color-primary);
+            color: var(--color-text);
+        }
+
+        .suggestion-card strong {
+            display: block;
+            font-size: var(--font-size-sm);
+            color: var(--color-text);
+            margin-bottom: 4px;
+        }
+
+        /* Input Area */
+        .ai-input-container {
+            padding: 14px 20px 18px;
+            background: var(--color-bg-secondary);
+            border-top: 1px solid var(--color-border);
+        }
+
+        .ai-input-box {
+            max-width: 840px;
+            margin: 0 auto;
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: 14px;
+            padding: 8px 12px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+            transition: border-color 0.2s;
+        }
+
+        .ai-input-box:focus-within {
+            border-color: var(--ai-primary);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+
+        .ai-textarea {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--color-text);
+            font-family: inherit;
+            font-size: 0.925rem;
+            resize: none;
+            max-height: 140px;
+            min-height: 24px;
+            line-height: 1.4;
+            padding: 4px 0;
+        }
+
+        .ai-send-btn {
+            background: var(--ai-primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            width: 34px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: background 0.15s, transform 0.1s;
+        }
+
+        .ai-send-btn:hover:not(:disabled) {
+            background: var(--ai-primary-hover);
+            transform: scale(1.05);
+        }
+
+        .ai-send-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* Offline Notice Banner */
+        .offline-notice {
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: var(--radius-md);
+            padding: 10px 14px;
+            font-size: var(--font-size-xs);
+            color: #fca5a5;
+            margin: 0 auto 10px;
+            max-width: 840px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        /* Modal styling for memory & config */
+        .ai-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .ai-modal-card {
+            background: var(--color-bg-secondary);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            width: 90%;
+            max-width: 520px;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .ai-modal-header {
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--color-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .ai-modal-body {
+            padding: 18px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .ai-modal-footer {
+            padding: 12px 18px;
+            border-top: 1px solid var(--color-border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        /* Typing animation */
+        .typing-dots {
+            display: inline-flex;
+            gap: 4px;
+            align-items: center;
+            padding: 4px 0;
+        }
+
+        .typing-dots span {
+            width: 6px;
+            height: 6px;
+            background: #9ca3af;
+            border-radius: 50%;
+            animation: typingBounce 1.2s infinite ease-in-out;
+        }
+
+        .typing-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typingBounce {
+            0%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-6px); }
+        }
+    </style>
+</head>
+
+<body class="ai-page">
+    <!-- Header -->
+    <header class="ai-header">
+        <div class="ai-header-left">
+            <a href="dashboard.html" class="ai-logo">
+                <span>🧠 Zabum AI</span>
+                <span class="ai-subtitle">Personal AI Assistant</span>
+            </a>
+            <div id="aiStatusPill" class="ai-status-pill offline" title="Click to configure backend URL">
+                <span class="ai-status-dot"></span>
+                <span id="aiStatusText">Connecting...</span>
+            </div>
+        </div>
+
+        <div class="flex gap-md items-center">
+            <span style="font-size: var(--font-size-xs); color: var(--color-text-secondary);">
+                Hello, <strong id="userDisplayName" style="color: var(--color-text);">...</strong>
+            </span>
+            <button id="configBackendBtn" class="btn btn-secondary btn-sm" title="Configure AI Backend URL" style="padding: 4px 8px; font-size: 0.75rem;">
+                ⚙️ Backend
+            </button>
+            <a href="dashboard.html" class="btn btn-secondary btn-sm" style="padding: 4px 10px; font-size: 0.75rem;">
+                Dashboard
+            </a>
+            <button onclick="logout()" class="btn btn-primary btn-sm" style="padding: 4px 10px; font-size: 0.75rem;">
+                Logout
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Workspace Container -->
+    <div class="ai-container">
+        <!-- Sidebar -->
+        <aside class="ai-sidebar">
+            <button id="newChatBtn" class="new-chat-btn">
+                <span>+</span> New Conversation
+            </button>
+
+            <div class="sidebar-search">
+                <span class="sidebar-search-icon">🔍</span>
+                <input type="text" id="convSearchInput" placeholder="Search conversations...">
+            </div>
+
+            <div id="convList" class="conv-list">
+                <!-- Conversation sessions render here -->
+                <div style="text-align: center; padding: 20px; font-size: 0.8rem; color: var(--color-text-secondary);">
+                    Loading chats...
+                </div>
+            </div>
+
+            <div class="sidebar-footer">
+                <button id="openMemoriesBtn" class="sidebar-btn">
+                    <span>🧠</span> Manage Memory
+                </button>
+                <button id="clearAllChatsBtn" class="sidebar-btn" style="color: #f87171;">
+                    <span>🗑️</span> Clear Conversations
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Chat Area -->
+        <main class="ai-main">
+            <!-- Offline Warning (Visible when backend/Ollama is offline) -->
+            <div id="offlineNotice" class="offline-notice hidden" style="margin-top: 12px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span>⚠️</span>
+                    <span><strong>Zabum AI is offline.</strong> Start Ollama: <code>ollama serve</code> &amp; ensure <code>llama3.2</code> is pulled.</span>
+                </div>
+                <button id="retryConnectionBtn" class="btn btn-sm btn-primary" style="padding: 2px 8px; font-size: 0.75rem;">Retry</button>
+            </div>
+
+            <!-- Messages Stream -->
+            <div id="messagesContainer" class="ai-messages-scroll">
+                <!-- Messages or empty state rendered dynamically -->
+            </div>
+
+            <!-- Input Bar -->
+            <div class="ai-input-container">
+                <div class="ai-input-box">
+                    <textarea id="aiMessageInput" class="ai-textarea" placeholder="Ask Zabum AI anything... (Shift+Enter for new line)" rows="1"></textarea>
+                    <button id="sendMessageBtn" class="ai-send-btn" title="Send message (Enter)">
+                        <span>➔</span>
+                    </button>
+                </div>
+                <div style="text-align: center; margin-top: 6px; font-size: 0.7rem; color: var(--color-text-tertiary);">
+                    Zabum AI runs locally with persistent personal memory. Your conversations are isolated to your account.
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Backend Configuration Modal -->
+    <div id="configModal" class="ai-modal hidden">
+        <div class="ai-modal-card">
+            <div class="ai-modal-header">
+                <h3 style="margin: 0; font-size: 1rem;">⚙️ AI Backend Configuration</h3>
+                <button id="closeConfigModal" class="btn-link" style="color: var(--color-text-secondary); font-size: 1.1rem; text-decoration: none;">✕</button>
+            </div>
+            <div class="ai-modal-body">
+                <p style="font-size: var(--font-size-xs); color: var(--color-text-secondary); margin-bottom: 12px;">
+                    Zabum AI communicates with your local Flask backend, which coordinates inference with Ollama (Llama 3.2).
+                </p>
+                <label style="font-size: var(--font-size-xs); font-weight: 500; display: block; margin-bottom: 4px;">
+                    Zabum Flask Backend URL
+                </label>
+                <input type="text" id="backendUrlInput" class="input" placeholder="http://localhost:5001" style="width: 100%; box-sizing: border-box; margin-bottom: 8px;">
+                <div style="font-size: 0.75rem; color: var(--color-text-secondary);">
+                    Default: <code>http://localhost:5001</code> (or <code>http://localhost:5000</code>).
+                </div>
+            </div>
+            <div class="ai-modal-footer">
+                <button id="resetBackendUrlBtn" class="btn btn-secondary btn-sm">Reset Default</button>
+                <button id="saveBackendUrlBtn" class="btn btn-primary btn-sm">Save &amp; Test</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Memory Management Modal -->
+    <div id="memoryModal" class="ai-modal hidden">
+        <div class="ai-modal-card" style="max-width: 600px;">
+            <div class="ai-modal-header">
+                <h3 style="margin: 0; font-size: 1rem;">🧠 Personal Memory Store</h3>
+                <button id="closeMemoryModal" class="btn-link" style="color: var(--color-text-secondary); font-size: 1.1rem; text-decoration: none;">✕</button>
+            </div>
+            <div class="ai-modal-body">
+                <p style="font-size: var(--font-size-xs); color: var(--color-text-secondary); margin-bottom: 12px;">
+                    Zabum automatically remembers facts and preferences you state during chat (e.g. <em>"Remember that I prefer Python"</em>). These are isolated exclusively to your account.
+                </p>
+                <div id="memoryListContainer" style="display: flex; flex-direction: column; gap: 8px;">
+                    <!-- Memories render here -->
+                </div>
+            </div>
+            <div class="ai-modal-footer">
+                <button id="doneMemoryBtn" class="btn btn-primary btn-sm">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script src="js/toast.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        let currentConversationId = null;
+        let allConversations = [];
+        let isGenerating = false;
+        let currentUser = null;
+
+        // Escape HTML
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        // Markdown formatter (simplified for clean display)
+        function formatMarkdown(text) {
+            if (!text) return '';
+            let html = escapeHtml(text);
+
+            // Code blocks ```lang\ncode\n```
+            html = html.replace(/```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g, (match, lang, code) => {
+                return `<pre><code class="language-${lang}">${code}</code></pre>`;
+            });
+
+            // Inline code `code`
+            html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+            // Bold **text**
+            html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+
+            // Italic *text*
+            html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+
+            // Newlines to paragraphs/breaks
+            const paragraphs = html.split(/\n\n+/);
+            return paragraphs.map(p => {
+                if (p.startsWith('<pre>')) return p;
+                return `<p>${p.replace(/\n/g, '<br>')}</p>`;
+            }).join('');
+        }
+
+        // Update Backend Health Status
+        async function checkBackendStatus() {
+            const statusPill = document.getElementById('aiStatusPill');
+            const statusText = document.getElementById('aiStatusText');
+            const offlineNotice = document.getElementById('offlineNotice');
+
+            try {
+                const status = await getAiStatus();
+                if (status && status.ai_provider && status.ai_provider.available) {
+                    statusPill.className = 'ai-status-pill';
+                    statusText.textContent = `🟢 Connected (${status.ai_provider.name || 'Llama 3.2'})`;
+                    offlineNotice.classList.add('hidden');
+                    return true;
+                } else {
+                    statusPill.className = 'ai-status-pill offline';
+                    statusText.textContent = `🟠 Ollama Offline`;
+                    offlineNotice.classList.remove('hidden');
+                    return false;
+                }
+            } catch (err) {
+                statusPill.className = 'ai-status-pill offline';
+                statusText.textContent = `🔴 Backend Offline`;
+                offlineNotice.classList.remove('hidden');
+                return false;
+            }
+        }
+
+        // Render Conversation List in Sidebar
+        function renderConversationList(conversations) {
+            const list = document.getElementById('convList');
+            if (!list) return;
+
+            if (conversations.length === 0) {
+                list.innerHTML = `
+                    <div style="text-align: center; padding: 24px 10px; font-size: 0.8rem; color: var(--color-text-secondary);">
+                        No conversations yet.<br>Start a new chat!
+                    </div>
+                `;
+                return;
+            }
+
+            list.innerHTML = '';
+            conversations.forEach(conv => {
+                const item = document.createElement('div');
+                item.className = `conv-item ${conv.id === currentConversationId ? 'active' : ''}`;
+                item.innerHTML = `
+                    <span class="conv-title" title="${escapeHtml(conv.title)}">${escapeHtml(conv.title || 'New Chat')}</span>
+                    <div class="conv-actions">
+                        <button class="conv-action-btn edit-title-btn" title="Rename">✏️</button>
+                        <button class="conv-action-btn delete-conv-btn" title="Delete">🗑️</button>
+                    </div>
+                `;
+
+                item.addEventListener('click', (e) => {
+                    if (e.target.closest('.conv-action-btn')) return;
+                    loadConversation(conv.id);
+                });
+
+                const editBtn = item.querySelector('.edit-title-btn');
+                editBtn.addEventListener('click', async () => {
+                    const newTitle = prompt('Enter new conversation title:', conv.title);
+                    if (newTitle && newTitle.trim() && newTitle.trim() !== conv.title) {
+                        try {
+                            await updateAiConversation(conv.id, newTitle.trim());
+                            await reloadConversations();
+                        } catch (err) {
+                            showToast(err.message || 'Failed to rename conversation', 'error');
+                        }
+                    }
+                });
+
+                const deleteBtn = item.querySelector('.delete-conv-btn');
+                deleteBtn.addEventListener('click', async () => {
+                    if (confirm(`Delete conversation "${conv.title}"?`)) {
+                        try {
+                            await deleteAiConversation(conv.id);
+                            if (currentConversationId === conv.id) {
+                                startNewChat();
+                            }
+                            await reloadConversations();
+                            showToast('Conversation deleted', 'info');
+                        } catch (err) {
+                            showToast(err.message || 'Failed to delete conversation', 'error');
+                        }
+                    }
+                });
+
+                list.appendChild(item);
+            });
+        }
+
+        // Reload conversations from backend
+        async function reloadConversations() {
+            try {
+                const data = await getAiConversations();
+                allConversations = data.conversations || [];
+                renderConversationList(allConversations);
+            } catch (err) {
+                console.warn('Could not load conversations:', err);
+            }
+        }
+
+        // Render Empty Chat State
+        function renderEmptyChat() {
+            const container = document.getElementById('messagesContainer');
+            const displayName = currentUser?.nickname || currentUser?.email || 'there';
+
+            container.innerHTML = `
+                <div class="empty-chat-state">
+                    <div class="empty-chat-icon">🧠</div>
+                    <h2 style="margin: 0 0 6px; font-size: 1.4rem;">Hello, ${escapeHtml(displayName)}!</h2>
+                    <p style="color: var(--color-text-secondary); font-size: 0.9rem; margin: 0;">
+                        I am your private Zabum AI assistant. How can I help you today?
+                    </p>
+
+                    <div class="suggestion-grid">
+                        <div class="suggestion-card" onclick="sendSuggestedPrompt('Explain recursion with Python code and practical examples')">
+                            <strong>🐍 Python & Algorithms</strong>
+                            Explain recursion with practical code examples.
+                        </div>
+                        <div class="suggestion-card" onclick="sendSuggestedPrompt('Please remember that I prefer TypeScript and dark mode interfaces')">
+                            <strong>🧠 Memory & Personalization</strong>
+                            Remember that I prefer TypeScript & dark mode.
+                        </div>
+                        <div class="suggestion-card" onclick="sendSuggestedPrompt('How does role-based access control (RBAC) work with JWTs?')">
+                            <strong>🛡️ Security Architecture</strong>
+                            How does RBAC work with JSON Web Tokens?
+                        </div>
+                        <div class="suggestion-card" onclick="sendSuggestedPrompt('Help me write a concise resume summary for a software engineer')">
+                            <strong>💼 Career & Writing</strong>
+                            Write a concise software engineer resume summary.
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Append message to chat stream
+        function appendMessage(role, content, memoriesCreated = []) {
+            const container = document.getElementById('messagesContainer');
+            const emptyState = container.querySelector('.empty-chat-state');
+            if (emptyState) {
+                container.innerHTML = '';
+            }
+
+            const row = document.createElement('div');
+            row.className = `msg-row ${role}`;
+
+            const avatar = document.createElement('div');
+            avatar.className = `avatar-badge ${role === 'user' ? 'avatar-user' : 'avatar-ai'}`;
+            avatar.textContent = role === 'user' ? '👤' : '🧠';
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'msg-content-wrapper';
+
+            const bubble = document.createElement('div');
+            bubble.className = 'msg-bubble';
+            bubble.innerHTML = formatMarkdown(content);
+            wrapper.appendChild(bubble);
+
+            if (memoriesCreated && memoriesCreated.length > 0) {
+                memoriesCreated.forEach(m => {
+                    const memTag = document.createElement('div');
+                    memTag.className = 'memory-pill';
+                    memTag.innerHTML = `🧠 <em>Saved memory:</em> ${escapeHtml(m.content)}`;
+                    wrapper.appendChild(memTag);
+                });
+            }
+
+            row.appendChild(avatar);
+            row.appendChild(wrapper);
+            container.appendChild(row);
+
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // Show typing indicator
+        function showTypingIndicator() {
+            const container = document.getElementById('messagesContainer');
+            const row = document.createElement('div');
+            row.className = 'msg-row assistant typing-indicator-row';
+            row.innerHTML = `
+                <div class="avatar-badge avatar-ai">🧠</div>
+                <div class="msg-content-wrapper">
+                    <div class="msg-bubble" style="padding: 8px 14px;">
+                        <div class="typing-dots">
+                            <span></span><span></span><span></span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(row);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function removeTypingIndicator() {
+            const indicator = document.querySelector('.typing-indicator-row');
+            if (indicator) indicator.remove();
+        }
+
+        // Load conversation
+        async function loadConversation(convId) {
+            currentConversationId = convId;
+            renderConversationList(allConversations);
+
+            const container = document.getElementById('messagesContainer');
+            container.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--color-text-secondary);">Loading conversation...</div>';
+
+            try {
+                const data = await getAiConversation(convId);
+                container.innerHTML = '';
+
+                if (data.messages && data.messages.length > 0) {
+                    data.messages.forEach(msg => {
+                        appendMessage(msg.role, msg.content);
+                    });
+                } else {
+                    renderEmptyChat();
+                }
+            } catch (err) {
+                showToast(err.message || 'Failed to load conversation', 'error');
+                renderEmptyChat();
+            }
+        }
+
+        // Start new chat
+        function startNewChat() {
+            currentConversationId = null;
+            renderConversationList(allConversations);
+            renderEmptyChat();
+            document.getElementById('aiMessageInput').focus();
+        }
+
+        // Send Message Handler
+        async function sendMessage() {
+            if (isGenerating) return;
+
+            const input = document.getElementById('aiMessageInput');
+            const text = input.value.trim();
+            if (!text) return;
+
+            input.value = '';
+            input.style.height = 'auto';
+
+            appendMessage('user', text);
+            showTypingIndicator();
+
+            isGenerating = true;
+            document.getElementById('sendMessageBtn').disabled = true;
+
+            try {
+                const res = await sendChatMessage(text, currentConversationId);
+                removeTypingIndicator();
+
+                if (res.conversation_id && res.conversation_id !== currentConversationId) {
+                    currentConversationId = res.conversation_id;
+                }
+
+                appendMessage('assistant', res.assistant_message?.content || '', res.memories_created);
+                await reloadConversations();
+            } catch (err) {
+                removeTypingIndicator();
+                let errorMsg = err.message;
+                if (err.isOffline) {
+                    errorMsg = "Zabum AI is offline. Start Ollama with 'ollama serve' and ensure model 'llama3.2' is downloaded.";
+                }
+                appendMessage('assistant', `⚠️ **Error:** ${errorMsg}`);
+                checkBackendStatus();
+            } finally {
+                isGenerating = false;
+                document.getElementById('sendMessageBtn').disabled = false;
+                input.focus();
+            }
+        }
+
+        // Send suggested prompt
+        window.sendSuggestedPrompt = function (text) {
+            const input = document.getElementById('aiMessageInput');
+            if (input) {
+                input.value = text;
+                sendMessage();
+            }
+        };
+
+        // Open Memory Store Modal
+        async function openMemoriesModal() {
+            const modal = document.getElementById('memoryModal');
+            const container = document.getElementById('memoryListContainer');
+            modal.classList.remove('hidden');
+            container.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--color-text-secondary);">Loading memories...</div>';
+
+            try {
+                const data = await getAiMemories();
+                const memories = data.memories || [];
+
+                if (memories.length === 0) {
+                    container.innerHTML = `
+                        <div style="text-align: center; padding: 24px; color: var(--color-text-secondary); font-size: 0.85rem;">
+                            No personal memories saved yet.<br>
+                            Try saying <em>"Remember that I prefer Python"</em> in a chat!
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = '';
+                memories.forEach(mem => {
+                    const card = document.createElement('div');
+                    card.style.cssText = 'display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-md); font-size: 0.85rem;';
+                    card.innerHTML = `
+                        <div>
+                            <span class="badge badge-info" style="font-size: 0.7rem; margin-right: 6px;">${escapeHtml(mem.category || 'general')}</span>
+                            <span>${escapeHtml(mem.content)}</span>
+                        </div>
+                        <button class="btn-link delete-mem-btn" style="color: #f87171; text-decoration: none; padding: 2px 6px;">🗑️</button>
+                    `;
+
+                    card.querySelector('.delete-mem-btn').addEventListener('click', async () => {
+                        try {
+                            await deleteAiMemory(mem.id);
+                            card.remove();
+                            showToast('Memory deleted', 'info');
+                        } catch (err) {
+                            showToast(err.message || 'Failed to delete memory', 'error');
+                        }
+                    });
+
+                    container.appendChild(card);
+                });
+            } catch (err) {
+                container.innerHTML = `<div style="color: var(--color-error); padding: 10px;">Failed to load memories: ${escapeHtml(err.message)}</div>`;
+            }
+        }
+
+        // Initialize Page & RBAC Security Verification
+        (async () => {
+            // 1. Enforce Authentication immediately
+            const isAuth = await requireAuth();
+            if (!isAuth) return;
+
+            currentUser = getCurrentUser();
+
+            // 2. Enforce RBAC Permission 'use_ai_assistant'
+            const userPermissions = (currentUser?.permissions || []).map(p => typeof p === 'string' ? p : p.name);
+            const userRoles = (currentUser?.roles || []).map(r => typeof r === 'string' ? r : r.name);
+
+            // Allow if permission present or if Admin
+            const hasPermission = userPermissions.includes('use_ai_assistant') || userRoles.includes('Admin');
+            if (!hasPermission) {
+                document.body.innerHTML = `
+                    <div style="height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--color-bg); color: var(--color-text); text-align: center; padding: 20px;">
+                        <div class="card" style="max-width: 440px; padding: 32px 24px;">
+                            <div style="font-size: 3rem; margin-bottom: 12px;">🚫</div>
+                            <h2 style="font-size: 1.3rem; margin-bottom: 8px;">403 - Access Forbidden</h2>
+                            <p style="color: var(--color-text-secondary); font-size: 0.9rem; margin-bottom: 20px;">
+                                Your account does not have the <code>use_ai_assistant</code> permission required to access Zabum AI.
+                            </p>
+                            <a href="dashboard.html" class="btn btn-primary" style="display: inline-block;">Return to Dashboard</a>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            // Display Name
+            const displayName = currentUser?.nickname || currentUser?.email || 'User';
+            document.getElementById('userDisplayName').textContent = displayName;
+
+            // Render Empty State
+            renderEmptyChat();
+
+            // Check Status and Load Conversations
+            await checkBackendStatus();
+            await reloadConversations();
+
+            // Event Listeners
+            document.getElementById('newChatBtn').addEventListener('click', startNewChat);
+
+            const sendBtn = document.getElementById('sendMessageBtn');
+            const textarea = document.getElementById('aiMessageInput');
+
+            sendBtn.addEventListener('click', sendMessage);
+
+            textarea.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+
+            textarea.addEventListener('input', () => {
+                textarea.style.height = 'auto';
+                textarea.style.height = Math.min(textarea.scrollHeight, 140) + 'px';
+            });
+
+            document.getElementById('retryConnectionBtn').addEventListener('click', async () => {
+                const isOnline = await checkBackendStatus();
+                if (isOnline) {
+                    showToast('Connected to Zabum AI!', 'success');
+                } else {
+                    showToast('Still offline. Ensure Ollama is running.', 'error');
+                }
+            });
+
+            // Memory Modal Listeners
+            document.getElementById('openMemoriesBtn').addEventListener('click', openMemoriesModal);
+            document.getElementById('closeMemoryModal').addEventListener('click', () => {
+                document.getElementById('memoryModal').classList.add('hidden');
+            });
+            document.getElementById('doneMemoryBtn').addEventListener('click', () => {
+                document.getElementById('memoryModal').classList.add('hidden');
+            });
+
+            // Clear all chats listener
+            document.getElementById('clearAllChatsBtn').addEventListener('click', async () => {
+                if (allConversations.length === 0) return;
+                if (confirm('Are you sure you want to delete ALL your conversations? This cannot be undone.')) {
+                    for (const c of allConversations) {
+                        try { await deleteAiConversation(c.id); } catch (e) {}
+                    }
+                    startNewChat();
+                    await reloadConversations();
+                    showToast('All conversations cleared', 'info');
+                }
+            });
+
+            // Backend Config Modal Listeners
+            const configModal = document.getElementById('configModal');
+            const backendInput = document.getElementById('backendUrlInput');
+
+            document.getElementById('configBackendBtn').addEventListener('click', () => {
+                backendInput.value = getAiApiUrl();
+                configModal.classList.remove('hidden');
+            });
+
+            document.getElementById('aiStatusPill').addEventListener('click', () => {
+                backendInput.value = getAiApiUrl();
+                configModal.classList.remove('hidden');
+            });
+
+            document.getElementById('closeConfigModal').addEventListener('click', () => {
+                configModal.classList.add('hidden');
+            });
+
+            document.getElementById('resetBackendUrlBtn').addEventListener('click', () => {
+                setAiApiUrl(null);
+                backendInput.value = getAiApiUrl();
+                showToast('Reset to default URL', 'info');
+            });
+
+            document.getElementById('saveBackendUrlBtn').addEventListener('click', async () => {
+                const url = backendInput.value.trim();
+                setAiApiUrl(url);
+                configModal.classList.add('hidden');
+                const ok = await checkBackendStatus();
+                if (ok) {
+                    showToast('Backend URL saved and connected!', 'success');
+                } else {
+                    showToast('Saved URL, but could not establish connection.', 'warning');
+                }
+            });
+
+            // Filter search input
+            document.getElementById('convSearchInput').addEventListener('input', (e) => {
+                const q = e.target.value.toLowerCase().trim();
+                if (!q) {
+                    renderConversationList(allConversations);
+                    return;
+                }
+                const filtered = allConversations.filter(c => (c.title || '').toLowerCase().includes(q));
+                renderConversationList(filtered);
+            });
+        })();
+    </script>
+</body>
+
+</html>
