@@ -4,12 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Auth Service</title>
+    <title>Dashboard - SwopMobile</title>
+    <meta name="description" content="SwopMobile personal dashboard with authenticated apps, music player, and AI assistant.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
     <style>
+        /* ── Compact status bar ─────────────────────────────── */
         .compact-status-bar {
             display: flex;
             align-items: center;
@@ -20,7 +22,7 @@
             background-color: var(--color-bg-secondary);
             border: 1px solid var(--color-border);
             border-radius: var(--radius-lg);
-            margin-bottom: var(--spacing-lg);
+            margin-bottom: var(--spacing-md);
         }
 
         .status-item {
@@ -35,6 +37,7 @@
             font-weight: 500;
         }
 
+        /* ── Nickname ────────────────────────────────────────── */
         .nickname-container {
             display: inline-flex;
             align-items: center;
@@ -57,10 +60,61 @@
             color: var(--color-primary-dark);
         }
 
+        /* ── Permissions strip ───────────────────────────────── */
+        .permissions-strip {
+            background: var(--color-bg-secondary);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            padding: 10px 18px;
+            margin-bottom: var(--spacing-lg);
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .permissions-strip-label {
+            font-size: var(--font-size-xs);
+            font-weight: 600;
+            color: var(--color-text-secondary);
+            margin-right: 4px;
+            white-space: nowrap;
+        }
+
+        /* ── Section headings ───────────────────────────────── */
+        .section-heading {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--color-text);
+            margin: 0 0 var(--spacing-md);
+            padding-bottom: 6px;
+            border-bottom: 2px solid var(--color-border);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-heading-icon {
+            font-size: 1rem;
+        }
+
+        .category-block {
+            margin-bottom: var(--spacing-xl);
+        }
+
+        /* ── Apps grid ──────────────────────────────────────── */
         .apps-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: var(--spacing-lg);
+        }
+
+        @media (max-width: 640px) {
+            .apps-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (min-width: 641px) and (max-width: 1024px) {
+            .apps-grid { grid-template-columns: repeat(2, 1fr); }
         }
 
         .app-card {
@@ -118,6 +172,7 @@
             font-weight: 500;
         }
 
+        /* ── Search bar ─────────────────────────────────────── */
         .search-input-wrapper {
             position: relative;
             min-width: 240px;
@@ -133,6 +188,7 @@
             border: 1px solid var(--color-border);
             outline: none;
             background: var(--color-bg);
+            box-sizing: border-box;
         }
 
         .search-input-wrapper input:focus {
@@ -150,8 +206,65 @@
             pointer-events: none;
         }
 
+        /* ── Empty / loading states ─────────────────────────── */
         .state-container {
             grid-column: 1 / -1;
+            padding: 40px 20px;
+            text-align: center;
+            color: var(--color-text-secondary);
+        }
+
+        /* ── Floating AI bubble ─────────────────────────────── */
+        #aiAssistantBubble {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 999;
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.45);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            outline: none;
+        }
+
+        #aiAssistantBubble:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 22px rgba(59, 130, 246, 0.6);
+        }
+
+        #aiAssistantBubble::after {
+            content: 'Zabum AI Assistant';
+            position: absolute;
+            bottom: 58px;
+            right: 0;
+            background: rgba(17, 24, 39, 0.92);
+            color: #f9fafb;
+            font-size: 0.75rem;
+            font-weight: 500;
+            padding: 4px 10px;
+            border-radius: 6px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.15s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        #aiAssistantBubble:hover::after {
+            opacity: 1;
+        }
+
+        /* ── No-results message ─────────────────────────────── */
+        .no-results-msg {
             padding: 40px 20px;
             text-align: center;
             color: var(--color-text-secondary);
@@ -162,7 +275,7 @@
 <body class="dashboard">
     <header class="header">
         <div class="header-content">
-            <a href="dashboard.html" class="logo">🛡️ Auth Service</a>
+            <a href="dashboard.html" class="logo" style="font-weight: 700; letter-spacing: -0.3px;">SwopMobile</a>
             <div class="flex gap-md items-center">
                 <a href="sessions.html" class="link-secondary" style="font-size: var(--font-size-sm);">Sessions</a>
                 <span id="userEmail" style="font-size: var(--font-size-sm); color: var(--color-text-secondary);"></span>
@@ -172,24 +285,30 @@
     </header>
 
     <main class="main-content">
-        <!-- Top Greeting & Editable Nickname -->
+
+        <!-- ── Dashboard heading + nickname ───────────────── -->
         <div class="mb-md flex justify-between items-center" style="flex-wrap: wrap; gap: 12px;">
             <div>
                 <h1 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 2px;">Dashboard</h1>
                 <p style="color: var(--color-text-secondary); font-size: var(--font-size-sm); margin: 0;">
-                    Welcome back, <span class="nickname-container"><strong id="userDisplayName" style="color: var(--color-text);">...</strong><button id="editNicknameBtn" class="btn-link" title="Change nickname">Edit</button></span>
+                    Welcome back,
+                    <span class="nickname-container">
+                        <strong id="userDisplayName" style="color: var(--color-text);">...</strong>
+                        <button id="editNicknameBtn" class="btn-link" title="Change nickname">Edit</button>
+                    </span>
                 </p>
             </div>
 
-            <!-- Inline Nickname Edit Form -->
+            <!-- Inline nickname editor -->
             <div id="nicknameEditForm" class="hidden flex items-center gap-xs" style="background: var(--color-bg-secondary); padding: 4px 8px; border-radius: var(--radius-md); border: 1px solid var(--color-border);">
-                <input type="text" id="nicknameInput" class="input" placeholder="Enter nickname" maxlength="50" style="padding: 4px 8px; font-size: var(--font-size-xs); width: 140px;">
+                <input type="text" id="nicknameInput" class="input" placeholder="Enter nickname" maxlength="50"
+                    style="padding: 4px 8px; font-size: var(--font-size-xs); width: 150px;">
                 <button id="saveNicknameBtn" class="btn btn-primary btn-sm" style="padding: 4px 8px;">Save</button>
                 <button id="cancelNicknameBtn" class="btn btn-sm" style="background: var(--color-border); color: var(--color-text); padding: 4px 6px;">✕</button>
             </div>
         </div>
 
-        <!-- Compact Status Row (Email, Roles, Permissions) -->
+        <!-- ── Compact status bar (Email | Roles | Permissions count) ── -->
         <div class="compact-status-bar">
             <div class="status-item">
                 <span class="status-label">Email:</span>
@@ -205,23 +324,29 @@
             </div>
         </div>
 
-        <!-- Available Apps & GitHub Repositories Section -->
+        <!-- ── Permissions Details (above Available Apps) ─── -->
+        <div class="permissions-strip" id="permissionsStrip">
+            <span class="permissions-strip-label">Your Permissions:</span>
+            <div id="permissionsContainer" style="display: flex; flex-wrap: wrap; gap: 6px;"></div>
+        </div>
+
+        <!-- ── Available Apps section ────────────────────── -->
         <div class="mt-lg">
             <div class="flex justify-between items-center mb-md" style="flex-wrap: wrap; gap: 10px;">
                 <div>
                     <h2 style="font-size: 1.2rem; font-weight: 600; margin: 0;">Available Apps</h2>
                     <p style="color: var(--color-text-secondary); font-size: var(--font-size-xs); margin-top: 2px;">
-                        Built-in apps & public repositories from <strong style="color: var(--color-text);">@Swopnab</strong>
+                        Built-in apps &amp; public repositories from <strong style="color: var(--color-text);">@Swopnab</strong>
                     </p>
                 </div>
                 <div class="search-input-wrapper">
                     <span class="search-icon-inside">🔍</span>
-                    <input type="text" id="repoSearchInput" placeholder="Filter apps & repositories..." autocomplete="off">
+                    <input type="text" id="repoSearchInput" placeholder="Search projects..." autocomplete="off">
                 </div>
             </div>
 
-            <div id="appsGrid" class="apps-grid">
-                <!-- Music Player & dynamically loaded GitHub projects will render here -->
+            <!-- All categorized sections render inside this wrapper -->
+            <div id="appsWrapper">
                 <div class="state-container">
                     <div class="spinner" style="margin: 0 auto 12px; border-color: rgba(59,130,246,0.3); border-top-color: var(--color-primary);"></div>
                     <p>Loading projects from GitHub...</p>
@@ -229,23 +354,52 @@
             </div>
         </div>
 
-        <!-- Permissions Details Section -->
-        <div class="card mt-lg" style="padding: var(--spacing-md) var(--spacing-lg);">
-            <h3 style="font-size: var(--font-size-base); margin-bottom: var(--spacing-sm);">Your Permissions Details</h3>
-            <div id="permissionsContainer"
-                style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: var(--spacing-xs);">
-            </div>
-        </div>
     </main>
+
+    <!-- ── Floating AI assistant bubble ───────────────────── -->
+    <button id="aiAssistantBubble" title="Zabum AI Assistant" aria-label="Open Zabum AI Assistant">
+        🧠
+    </button>
 
     <div id="toastContainer" class="toast-container"></div>
 
     <script src="js/toast.js"></script>
     <script src="js/api.js"></script>
     <script>
-        let allProjects = [];
+        // ─────────────────────────────────────────────────────
+        // Constants
+        // ─────────────────────────────────────────────────────
 
-        // Escape HTML to prevent XSS
+        // Repos to always exclude from the dynamic listing
+        const EXCLUDED_REPOS = new Set([
+            'jwt-auth-service-plus-rbac',
+            'zabum-ai',
+            'swopnabk'          // hidden per user request
+        ]);
+
+        // Curated descriptions for known repos (keyed by lowercased repo name)
+        const REPO_DESCRIPTIONS = {
+            'hand-controlled-racing-simulation': 'Browser racing game controlled using real-time webcam hand tracking.',
+            'hand-controlled-racing': 'Browser racing game controlled using real-time webcam hand tracking.',
+            'website': 'Personal portfolio website showcasing projects, skills, and experience.',
+            'my-react-blog': 'React-based blog interface for creating and browsing web content.',
+            'personal-job-tracker-app': 'Web app for tracking job applications, companies, roles, and application status.',
+            'rock-paper-scissor': 'Browser-based Rock Paper Scissors game built with HTML, CSS, and JavaScript.',
+            'rock-paper-scissors': 'Browser-based Rock Paper Scissors game built with HTML, CSS, and JavaScript.',
+            'music-player': 'Web music player for searching and streaming songs via Audius.',
+            'portfolio': 'Personal portfolio website showcasing projects, skills, and experience.',
+            'weather-app': 'Real-time weather forecast web application.',
+            'todo-app': 'Task management application for organizing daily to-dos.',
+        };
+
+        // Category classification by repo name keywords
+        const GAME_KEYWORDS = ['game', 'racing', 'simulation', 'rock-paper-scissor', 'chess', 'puzzle', 'quiz', 'snake', 'tetris', 'pong'];
+        const ENTERTAINMENT_KEYWORDS = ['music', 'audio', 'player', 'playlist', 'spotify', 'stream'];
+
+        // ─────────────────────────────────────────────────────
+        // Helpers
+        // ─────────────────────────────────────────────────────
+
         function escapeHtml(str) {
             if (!str) return '';
             return String(str)
@@ -256,216 +410,279 @@
                 .replace(/'/g, '&#039;');
         }
 
-        // Format repository name into clean title case
         function formatRepoTitle(name) {
             if (!name) return 'Untitled Project';
-            // Replace hyphens and underscores with spaces
             const words = name.replace(/[-_]+/g, ' ').trim().split(/\s+/);
             return words.map(w => {
-                // Keep known acronyms uppercase
                 const upper = w.toUpperCase();
-                if (['JWT', 'RBAC', 'AI', 'API', 'UI', 'CSS', 'HTML', 'JS', 'REST', 'SDK'].includes(upper)) {
-                    return upper;
-                }
+                if (['JWT', 'RBAC', 'AI', 'API', 'UI', 'CSS', 'HTML', 'JS', 'REST', 'SDK', 'APP'].includes(upper)) return upper;
                 return w.charAt(0).toUpperCase() + w.slice(1);
             }).join(' ');
         }
 
-        // Get language color for visual badge
         function getLanguageColor(lang) {
             const colors = {
-                'JavaScript': '#f1e05a',
-                'TypeScript': '#3178c6',
-                'Python': '#3572A5',
-                'HTML': '#e34c26',
-                'CSS': '#563d7c',
-                'Shell': '#89e051',
-                'Vue': '#41b883',
-                'React': '#61dafb',
-                'C++': '#f34b7d',
-                'Java': '#b07219'
+                'JavaScript': '#f1e05a', 'TypeScript': '#3178c6', 'Python': '#3572A5',
+                'HTML': '#e34c26', 'CSS': '#563d7c', 'Shell': '#89e051', 'Vue': '#41b883',
+                'React': '#61dafb', 'C++': '#f34b7d', 'Java': '#b07219'
             };
             return colors[lang] || '#6b7280';
         }
 
-        // Render project cards inside grid
-        function renderApps(projects) {
-            const grid = document.getElementById('appsGrid');
-            if (!grid) return;
+        /**
+         * Classify a repo into a display category.
+         * Returns: 'Games' | 'Entertainment' | 'Apps'
+         */
+        function categorizeRepo(repoNameLower) {
+            const normalized = repoNameLower.replace(/-/g, '');
+            if (GAME_KEYWORDS.some(kw => repoNameLower.includes(kw) || normalized.includes(kw.replace(/-/g, '')))) {
+                return 'Games';
+            }
+            if (ENTERTAINMENT_KEYWORDS.some(kw => repoNameLower.includes(kw))) {
+                return 'Entertainment';
+            }
+            return 'Apps';
+        }
 
-            if (projects.length === 0) {
-                grid.innerHTML = `
-                    <div class="state-container">
-                        <p style="font-size: 0.95rem; margin-bottom: 6px;">No projects match your filter.</p>
-                        <button onclick="clearSearch()" class="btn-link" style="font-size: 0.85rem;">Clear search filter</button>
+        /**
+         * Get the best description for a repo.
+         * Prefers the GitHub description if it exists and is meaningful.
+         * Falls back to the curated local map.
+         */
+        function getRepoDescription(repo) {
+            const key = (repo.name || '').toLowerCase();
+            const ghDesc = (repo.description || '').trim();
+
+            // Use GitHub description if present and not obviously empty/generic
+            if (ghDesc && ghDesc.length > 3) {
+                return ghDesc;
+            }
+
+            // Fall back to local map
+            return REPO_DESCRIPTIONS[key] || null;
+        }
+
+        // ─────────────────────────────────────────────────────
+        // Card renderer
+        // ─────────────────────────────────────────────────────
+
+        function buildCard(project) {
+            const card = document.createElement('div');
+            card.className = 'app-card';
+            card.dataset.title = (project.title || '').toLowerCase();
+            card.dataset.desc = (project.description || '').toLowerCase();
+            card.dataset.lang = (project.language || '').toLowerCase();
+            card.dataset.category = (project.category || '').toLowerCase();
+
+            if (project.isFeatured) {
+                card.style.borderTop = `4px solid ${project.accentColor || '#3b82f6'}`;
+            }
+
+            const langHtml = project.language ? `
+                <span class="lang-badge">
+                    <span class="lang-dot" style="background-color: ${getLanguageColor(project.language)};"></span>
+                    ${escapeHtml(project.language)}
+                </span>
+            ` : '';
+
+            const launchBtnHtml = project.launchUrl ? `
+                <a href="${escapeHtml(project.launchUrl)}"
+                   ${project.isExternal ? 'target="_blank" rel="noopener noreferrer"' : ''}
+                   class="btn btn-primary btn-sm"
+                   style="${project.buttonStyle || ''}">
+                    ${escapeHtml(project.buttonText || 'Launch App')}
+                </a>
+            ` : '';
+
+            const sourceBtnHtml = project.sourceUrl ? `
+                <a href="${escapeHtml(project.sourceUrl)}"
+                   target="_blank" rel="noopener noreferrer"
+                   class="link-secondary"
+                   style="font-size: var(--font-size-xs); display: inline-flex; align-items: center; gap: 4px;">
+                    View Source ↗
+                </a>
+            ` : '';
+
+            card.innerHTML = `
+                <div>
+                    <div class="flex items-center justify-between gap-sm mb-xs">
+                        <h3 class="app-title">${escapeHtml(project.title)}</h3>
+                        ${langHtml}
+                    </div>
+                    <p class="app-desc">${escapeHtml(project.description || 'No description available.')}</p>
+                </div>
+                <div class="flex gap-sm items-center mt-md" style="flex-wrap: wrap;">
+                    ${launchBtnHtml}
+                    ${sourceBtnHtml}
+                </div>
+            `;
+            return card;
+        }
+
+        // ─────────────────────────────────────────────────────
+        // Categorized renderer
+        // ─────────────────────────────────────────────────────
+
+        /**
+         * Render all projects into categorized sections.
+         * When `query` is provided, filters projects and hides empty sections.
+         */
+        function renderCategorized(projects, query) {
+            const wrapper = document.getElementById('appsWrapper');
+            if (!wrapper) return;
+
+            const q = (query || '').toLowerCase().trim();
+
+            // Filter
+            const visible = q ? projects.filter(p =>
+                p.title.toLowerCase().includes(q) ||
+                (p.description || '').toLowerCase().includes(q) ||
+                (p.language || '').toLowerCase().includes(q) ||
+                (p.category || '').toLowerCase().includes(q)
+            ) : projects;
+
+            if (visible.length === 0) {
+                wrapper.innerHTML = `
+                    <div class="no-results-msg">
+                        <p style="font-size: 0.95rem; margin-bottom: 6px;">No projects match your search.</p>
+                        <button onclick="clearSearch()" class="btn-link" style="font-size: 0.85rem;">Clear search</button>
                     </div>
                 `;
                 return;
             }
 
-            grid.innerHTML = '';
+            // Group by category
+            const groups = { 'Featured Apps': [], 'Games': [], 'Apps': [], 'Entertainment': [] };
+            visible.forEach(p => {
+                const cat = p.category || 'Apps';
+                if (!groups[cat]) groups[cat] = [];
+                groups[cat].push(p);
+            });
 
-            projects.forEach(project => {
-                const card = document.createElement('div');
-                card.className = 'app-card';
+            const categoryIcons = {
+                'Featured Apps': '⭐',
+                'Games': '🎮',
+                'Apps': '💼',
+                'Entertainment': '🎵'
+            };
 
-                if (project.isFeatured) {
-                    card.style.borderTop = `4px solid ${project.accentColor || '#fa2d48'}`;
-                }
+            wrapper.innerHTML = '';
 
-                const langHtml = project.language ? `
-                    <span class="lang-badge">
-                        <span class="lang-dot" style="background-color: ${getLanguageColor(project.language)};"></span>
-                        ${escapeHtml(project.language)}
-                    </span>
-                ` : '';
+            const order = ['Featured Apps', 'Games', 'Apps', 'Entertainment'];
+            order.forEach(cat => {
+                const items = groups[cat];
+                if (!items || items.length === 0) return;
 
-                const launchBtnHtml = project.launchUrl ? `
-                    <a href="${escapeHtml(project.launchUrl)}" ${project.isExternal ? 'target="_blank" rel="noopener noreferrer"' : ''} class="btn btn-primary btn-sm" style="${project.buttonStyle || ''}">
-                        ${escapeHtml(project.buttonText || 'Launch App')}
-                    </a>
-                ` : '';
+                const block = document.createElement('div');
+                block.className = 'category-block';
 
-                const sourceBtnHtml = project.sourceUrl ? `
-                    <a href="${escapeHtml(project.sourceUrl)}" target="_blank" rel="noopener noreferrer" class="link-secondary" style="font-size: var(--font-size-xs); display: inline-flex; align-items: center; gap: 4px;">
-                        View Source ↗
-                    </a>
-                ` : '';
+                const heading = document.createElement('h3');
+                heading.className = 'section-heading';
+                heading.innerHTML = `<span class="section-heading-icon">${categoryIcons[cat] || '📁'}</span>${escapeHtml(cat)}`;
+                block.appendChild(heading);
 
-                card.innerHTML = `
-                    <div>
-                        <div class="flex items-center justify-between gap-sm mb-xs">
-                            <h3 class="app-title">${escapeHtml(project.title)}</h3>
-                            ${langHtml}
-                        </div>
-                        <p class="app-desc">${escapeHtml(project.description || 'No description provided.')}</p>
-                    </div>
-                    <div class="flex gap-sm items-center mt-md" style="flex-wrap: wrap;">
-                        ${launchBtnHtml}
-                        ${sourceBtnHtml}
-                    </div>
-                `;
+                const grid = document.createElement('div');
+                grid.className = 'apps-grid';
+                items.forEach(p => grid.appendChild(buildCard(p)));
+                block.appendChild(grid);
 
-                grid.appendChild(card);
+                wrapper.appendChild(block);
             });
         }
 
-        // Clear search
+        // ─────────────────────────────────────────────────────
+        // Search
+        // ─────────────────────────────────────────────────────
+
+        let allProjects = [];
+
         window.clearSearch = function () {
             const input = document.getElementById('repoSearchInput');
-            if (input) {
-                input.value = '';
-                filterProjects('');
-            }
+            if (input) { input.value = ''; renderCategorized(allProjects, ''); }
         };
 
-        // Filter projects by query string
-        function filterProjects(query) {
-            const q = (query || '').toLowerCase().trim();
-            if (!q) {
-                renderApps(allProjects);
-                return;
-            }
+        // ─────────────────────────────────────────────────────
+        // GitHub fetch
+        // ─────────────────────────────────────────────────────
 
-            const filtered = allProjects.filter(p => {
-                const title = (p.title || '').toLowerCase();
-                const desc = (p.description || '').toLowerCase();
-                const lang = (p.language || '').toLowerCase();
-                return title.includes(q) || desc.includes(q) || lang.includes(q);
-            });
-
-            renderApps(filtered);
-        }
-
-        // Fetch all public repositories from GitHub with pagination support
         async function fetchGitHubRepositories() {
             const username = 'Swopnab';
             const repos = [];
             let page = 1;
             const perPage = 100;
 
-            try {
-                while (true) {
-                    const response = await fetch(`https://api.github.com/users/${username}/repos?per_page=${perPage}&page=${page}&sort=updated`, {
-                        headers: {
-                            'Accept': 'application/vnd.github.v3+json'
-                        }
-                    });
+            while (true) {
+                const response = await fetch(
+                    `https://api.github.com/users/${username}/repos?per_page=${perPage}&page=${page}&sort=updated`,
+                    { headers: { 'Accept': 'application/vnd.github.v3+json' } }
+                );
 
-                    if (!response.ok) {
-                        throw new Error(`GitHub API returned status ${response.status}`);
-                    }
+                if (!response.ok) throw new Error(`GitHub API status ${response.status}`);
 
-                    const pageData = await response.json();
-                    if (!Array.isArray(pageData) || pageData.length === 0) {
-                        break;
-                    }
-
-                    repos.push(...pageData);
-
-                    // If less than perPage returned, reached the last page
-                    if (pageData.length < perPage) {
-                        break;
-                    }
-
-                    page++;
-                    // Safety ceiling
-                    if (page > 10) break;
-                }
-
-                return repos;
-            } catch (err) {
-                console.error('Error loading GitHub repositories:', err);
-                throw err;
+                const pageData = await response.json();
+                if (!Array.isArray(pageData) || pageData.length === 0) break;
+                repos.push(...pageData);
+                if (pageData.length < perPage) break;
+                page++;
+                if (page > 10) break;
             }
+
+            return repos;
         }
 
-        // Load all dashboard projects (Zabum AI + Built-in Music Player + GitHub Repositories)
+        // ─────────────────────────────────────────────────────
+        // Load all projects
+        // ─────────────────────────────────────────────────────
+
         async function loadAllProjects() {
-            const grid = document.getElementById('appsGrid');
             allProjects = [];
 
-            // 1. Zabum AI Assistant App (Protected Application)
-            const zabumAiApp = {
+            // ── Featured built-in apps ──────────────────────
+            allProjects.push({
                 title: '🧠 Zabum AI Assistant',
-                description: 'Personal AI assistant powered locally by Llama 3.2 with conversation memory and knowledge retrieval.',
-                language: 'Llama 3.2 • Python',
+                description: 'Personal AI assistant with conversation memory and knowledge retrieval.',
+                language: 'Python • Llama 3.2',
                 launchUrl: 'ai-assistant.html',
                 sourceUrl: 'https://github.com/Swopnab/Zabum-AI',
                 isFeatured: true,
                 isExternal: false,
                 accentColor: '#3b82f6',
+                category: 'Featured Apps',
                 buttonText: 'Launch Assistant',
                 buttonStyle: 'background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%); border: none;'
-            };
-            allProjects.push(zabumAiApp);
+            });
 
-            // 2. Built-in Music Player App (Always present)
-            const musicPlayerApp = {
+            allProjects.push({
                 title: '🎵 Music Player',
                 description: 'Stream and search unlimited music via Audius API with a custom player interface.',
-                language: 'Audius Stream',
+                language: 'JavaScript',
                 launchUrl: 'music-player.html',
                 sourceUrl: null,
                 isFeatured: true,
                 isExternal: false,
                 accentColor: '#fa2d48',
+                category: 'Featured Apps',
                 buttonText: 'Launch App',
                 buttonStyle: 'background: linear-gradient(135deg, #fa2d48 0%, #ff6a88 100%); border: none;'
-            };
-            allProjects.push(musicPlayerApp);
+            });
+
+            const wrapper = document.getElementById('appsWrapper');
 
             try {
                 const repos = await fetchGitHubRepositories();
 
                 repos.forEach(repo => {
-                    // Skip current auth repo and Zabum-AI to avoid duplication with built-in app cards
-                    const repoNameLower = (repo.name || '').toLowerCase();
-                    if (repoNameLower === 'jwt-auth-service-plus-rbac' || repoNameLower === 'zabum-ai') {
-                        return;
-                    }
+                    const nameLower = (repo.name || '').toLowerCase();
 
-                    // Determine deployment URL if GitHub Pages or homepage is available
+                    // Skip excluded repos (SwopnabK, this auth repo, Zabum-AI already featured)
+                    if (EXCLUDED_REPOS.has(nameLower)) return;
+
+                    // Skip Music Player repo if its name matches - avoid duplicate with built-in
+                    // Allow it to show as Entertainment if it has a different name
+                    const isMusicPlayerDuplicate = nameLower === 'music-player';
+                    if (isMusicPlayerDuplicate) return;
+
+                    // Deployment URL
                     let launchUrl = null;
                     if (repo.has_pages) {
                         launchUrl = `https://swopnab.github.io/${repo.name}/`;
@@ -473,64 +690,76 @@
                         launchUrl = repo.homepage;
                     }
 
+                    const description = getRepoDescription(repo);
+                    const category = categorizeRepo(nameLower);
+
                     allProjects.push({
                         title: formatRepoTitle(repo.name),
-                        description: repo.description || 'Public GitHub repository.',
+                        description: description || 'A public project by Swopnab.',
                         language: repo.language || '',
-                        launchUrl: launchUrl,
+                        launchUrl,
                         sourceUrl: repo.html_url,
                         isFeatured: false,
-                        isExternal: true
+                        isExternal: true,
+                        category
                     });
                 });
 
-                renderApps(allProjects);
+                renderCategorized(allProjects, '');
             } catch (err) {
-                // Render with just the built-in apps and an error notice for GitHub API
-                renderApps(allProjects);
-                if (grid) {
-                    const errorNotice = document.createElement('div');
-                    errorNotice.className = 'state-container';
-                    errorNotice.style.padding = '20px';
-                    errorNotice.innerHTML = `
-                        <p style="color: var(--color-error); font-size: 0.85rem; margin-bottom: 8px;">
-                            Could not load additional GitHub repositories (${escapeHtml(err.message)}).
-                        </p>
-                        <button onclick="loadAllProjects()" class="btn btn-sm btn-primary">Retry</button>
+                console.error('GitHub API error:', err);
+                // Show built-in apps even if GitHub fetch fails
+                renderCategorized(allProjects, '');
+                if (wrapper) {
+                    const errNote = document.createElement('div');
+                    errNote.style.cssText = 'padding: 10px 0; font-size: 0.85rem; color: var(--color-error); text-align: center;';
+                    errNote.innerHTML = `
+                        Could not load GitHub repositories (${escapeHtml(err.message)}).
+                        <button onclick="loadAllProjects()" class="btn-link" style="font-size: 0.85rem; margin-left: 6px;">Retry</button>
                     `;
-                    grid.appendChild(errorNotice);
+                    wrapper.appendChild(errNote);
                 }
             }
         }
 
-        // Initialize Dashboard & Nickname Logic
+        // ─────────────────────────────────────────────────────
+        // Initialize
+        // ─────────────────────────────────────────────────────
         (async () => {
             const isAuth = await requireAuth();
             if (!isAuth) return;
 
+            // Wire up floating AI bubble (only visible after auth passes)
+            const bubble = document.getElementById('aiAssistantBubble');
+            if (bubble) {
+                bubble.addEventListener('click', () => { window.location.href = 'ai-assistant.html'; });
+                bubble.style.display = 'flex';
+            }
+
             let user = getCurrentUser();
 
-            // Refresh user profile in background to get latest nickname
+            // Refresh profile to get latest nickname from backend
             try {
                 if (typeof getProfile === 'function') {
-                    const profileData = await getProfile();
-                    if (profileData) user = getCurrentUser();
+                    await getProfile();
+                    user = getCurrentUser();
                 }
             } catch (e) {
                 console.warn('Could not refresh profile:', e);
             }
 
+            // ── Update all user display elements ────────────
             function updateUserDisplay(userData) {
                 if (!userData) return;
 
-                const displayName = userData.nickname && userData.nickname.trim()
+                const displayName = (userData.nickname && userData.nickname.trim())
                     ? userData.nickname.trim()
                     : (userData.email || 'User');
 
                 document.getElementById('userDisplayName').textContent = displayName;
                 document.getElementById('userEmail').textContent = userData.email || '';
 
-                // Email verification status
+                // Email verification badge
                 const emailStatus = document.getElementById('emailStatus');
                 if (userData.email_verified) {
                     emailStatus.innerHTML = '<span class="badge badge-success" style="font-size: var(--font-size-xs); padding: 2px 8px;">Verified ✓</span>';
@@ -545,44 +774,48 @@
                     const roleName = typeof role === 'string' ? role : role.name;
                     const badge = document.createElement('span');
                     badge.className = 'badge badge-info';
-                    badge.style.fontSize = 'var(--font-size-xs)';
-                    badge.style.padding = '2px 8px';
+                    badge.style.cssText = 'font-size: var(--font-size-xs); padding: 2px 8px;';
                     badge.textContent = roleName;
                     rolesContainer.appendChild(badge);
                 });
 
-                // Permissions count & list
+                // Permissions
                 const permissions = userData.permissions || [];
-                document.getElementById('permissionCount').textContent = `${permissions.length} permissions`;
+                document.getElementById('permissionCount').textContent = `${permissions.length} permission${permissions.length !== 1 ? 's' : ''}`;
 
-                const permissionsContainer = document.getElementById('permissionsContainer');
-                if (permissionsContainer) {
-                    permissionsContainer.innerHTML = '';
-                    permissions.forEach(permission => {
-                        const permName = typeof permission === 'string' ? permission : permission.name;
-                        const badge = document.createElement('span');
-                        badge.className = 'badge badge-success';
-                        badge.style.fontSize = 'var(--font-size-xs)';
-                        badge.textContent = permName;
-                        permissionsContainer.appendChild(badge);
-                    });
+                const permContainer = document.getElementById('permissionsContainer');
+                if (permContainer) {
+                    permContainer.innerHTML = '';
+                    if (permissions.length === 0) {
+                        permContainer.innerHTML = '<span style="font-size: var(--font-size-xs); color: var(--color-text-secondary);">No permissions assigned.</span>';
+                    } else {
+                        permissions.forEach(permission => {
+                            const permName = typeof permission === 'string' ? permission : permission.name;
+                            const badge = document.createElement('span');
+                            badge.className = 'badge badge-success';
+                            badge.style.cssText = 'font-size: 0.72rem; padding: 2px 8px;';
+                            badge.textContent = permName;
+                            permContainer.appendChild(badge);
+                        });
+                    }
                 }
             }
 
             updateUserDisplay(user);
 
-            // Nickname Edit Form Handlers
+            // ── Nickname edit handlers ───────────────────────
             const editBtn = document.getElementById('editNicknameBtn');
             const form = document.getElementById('nicknameEditForm');
-            const input = document.getElementById('nicknameInput');
+            const nicknameInput = document.getElementById('nicknameInput');
             const saveBtn = document.getElementById('saveNicknameBtn');
             const cancelBtn = document.getElementById('cancelNicknameBtn');
 
-            if (editBtn && form && input && saveBtn && cancelBtn) {
+            if (editBtn && form && nicknameInput && saveBtn && cancelBtn) {
                 editBtn.addEventListener('click', () => {
-                    input.value = user.nickname || '';
+                    nicknameInput.value = user.nickname || '';
                     form.classList.remove('hidden');
-                    input.focus();
+                    nicknameInput.focus();
+                    nicknameInput.select();
                 });
 
                 cancelBtn.addEventListener('click', () => {
@@ -590,45 +823,54 @@
                 });
 
                 saveBtn.addEventListener('click', async () => {
-                    const newNickname = input.value.trim();
+                    const newNickname = nicknameInput.value.trim();
+
+                    // Frontend validation
+                    if (newNickname.length > 0 && newNickname.length < 2) {
+                        if (typeof showToast === 'function') showToast('Nickname must be at least 2 characters', 'error');
+                        return;
+                    }
+                    if (newNickname.length > 50) {
+                        if (typeof showToast === 'function') showToast('Nickname must be 50 characters or less', 'error');
+                        return;
+                    }
+
                     saveBtn.disabled = true;
                     saveBtn.textContent = 'Saving...';
 
                     try {
+                        // Send null to clear nickname, or trimmed string to set it
                         await updateNickname(newNickname || null);
+                        // Refresh user object from sessionStorage (updateNickname writes it)
                         user = getCurrentUser();
+                        // Update the display immediately — no reload required
                         updateUserDisplay(user);
                         form.classList.add('hidden');
-                        if (typeof showToast === 'function') {
-                            showToast('Nickname updated successfully', 'success');
-                        }
+                        if (typeof showToast === 'function') showToast('Nickname updated!', 'success');
                     } catch (err) {
-                        if (typeof showToast === 'function') {
-                            showToast(err.message || 'Failed to update nickname', 'error');
-                        } else {
-                            alert(err.message || 'Failed to update nickname');
-                        }
+                        if (typeof showToast === 'function') showToast(err.message || 'Failed to update nickname', 'error');
+                        else alert(err.message || 'Failed to update nickname');
                     } finally {
                         saveBtn.disabled = false;
                         saveBtn.textContent = 'Save';
                     }
                 });
 
-                input.addEventListener('keydown', (e) => {
+                nicknameInput.addEventListener('keydown', (e) => {
                     if (e.key === 'Enter') saveBtn.click();
                     if (e.key === 'Escape') cancelBtn.click();
                 });
             }
 
-            // Search filter handler
+            // ── Search ──────────────────────────────────────
             const searchInput = document.getElementById('repoSearchInput');
             if (searchInput) {
                 searchInput.addEventListener('input', (e) => {
-                    filterProjects(e.target.value);
+                    renderCategorized(allProjects, e.target.value);
                 });
             }
 
-            // Load GitHub projects
+            // ── Load projects ────────────────────────────────
             loadAllProjects();
         })();
     </script>

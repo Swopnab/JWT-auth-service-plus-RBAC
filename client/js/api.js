@@ -76,6 +76,8 @@ function getCurrentUser() {
         return {
             id: payload.sub,
             email: payload.email || storedUser?.email,
+            // nickname is never embedded in JWT - always read from storedUser (written by getProfile/updateNickname)
+            nickname: storedUser?.nickname ?? null,
             email_verified: storedUser?.email_verified ?? false,
             roles: payload.roles || storedUser?.roles || [],
             permissions: payload.permissions || storedUser?.permissions || []
@@ -83,6 +85,14 @@ function getCurrentUser() {
     }
 
     return storedUser;
+}
+
+/**
+ * Get the current raw access token string
+ * @returns {string|null}
+ */
+function getAccessToken() {
+    return sessionStorage.getItem('accessToken');
 }
 
 /**
