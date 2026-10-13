@@ -20,21 +20,10 @@ export function generateSessionId() {
     return generateSecureToken(16);
 }
 
-/**
- * Simple hash function for storing tokens
- * Note: This is a basic hash. In production, use subtle.digest in async handlers
- * @param {string} token - Token to hash
- * @returns {string} Hashed token
- */
-export function hashToken(token) {
-    let hash = 0;
-    for (let i = 0; i < token.length; i++) {
-        const char = token.charCodeAt(i);
-        hash = ((hash << 5) - hash) + char;
-        hash = hash & hash; // Convert to 32bit integer
-    }
-    // Return as hex string
-    return (hash >>> 0).toString(16).padStart(8, '0');
+/** Hash opaque tokens with SHA-256 before storing or looking them up. */
+export async function hashToken(token) {
+    const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(token));
+    return Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('');
 }
 
 /**
@@ -42,7 +31,7 @@ export function hashToken(token) {
  * @param {Request} request - HTTP request
  * @returns {string} Device fingerprint hash
  */
-export function generateDeviceFingerprint(request) {
+export async function generateDeviceFingerprint(request) {
     const userAgent = request.headers.get('user-agent') || '';
     const acceptLanguage = request.headers.get('accept-language') || '';
     const acceptEncoding = request.headers.get('accept-encoding') || '';

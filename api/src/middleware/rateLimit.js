@@ -1,59 +1,29 @@
-// Rate limiting middleware - simple in-memory rate limiter
-// Vanilla JavaScript version
-
+// Persistent fixed-window limits shared by all Workers using the same D1 database.
 import { RateLimitError } from '../utils/errors.js';
+import { hashToken } from '../utils/crypto.js';
 
-// In-memory store for rate limiting (resets on worker restart)
-const rateLimitStore = new Map();
-
-/**
- * Create rate limit middleware
- * @param {number} maxAttempts - Max attempts allowed
- * @param {number} windowSeconds - Time window in seconds
- * @returns {Function} Middleware function
- */
-function createRateLimiter(maxAttempts, windowSeconds) {
+export function createRateLimiter(maxAttempts, windowSeconds) {
     return async (c, next) => {
-        const ip = c.req.header('cf-connecting-ip') ||
-            c.req.header('x-forwarded-for')?.split(',')[0] ||
-            'unknown';
-
-        const key = `${c.req.path}:${ip}`;
-        const now = Date.now();
-        const windowMs = windowSeconds * 1000;
-
-        // Get or create rate limit entry
-        let entry = rateLimitStore.get(key);
-
-        if (!entry || now - entry.resetTime > windowMs) {
-            // Reset window
-            entry = {
-                count: 0,
-                resetTime: now,
-            };
-        }
-
-        entry.count++;
-        rateLimitStore.set(key, entry);
-
+        // Cloudflare overwrites this header. Do not trust X-Forwarded-For.
+        const ip = c.req.header('cf-connecting-ip') || 'local';
+        const now = Math.floor(Date.now() / 1000);
+        const bucket = Math.floor(now / windowSeconds);
+        const expiresAt = (bucket + 1) * windowSeconds;
+        const key = await hashToken(`${c.req.path}:${ip}:${bucket}`);
+        const entry = await c.env.DB.prepare(
+            `INSERT INTO rate_limits (key, count, expires_at) VALUES (?, 1, ?)
+             ON CONFLICT(key) DO UPDATE SET count = count + 1 RETURNING count`
+        ).bind(key, expiresAt).first();
+        await c.env.DB.prepare('DELETE FROM rate_limits WHERE expires_at <= ?').bind(now).run();
+        c.header('X-RateLimit-Limit', String(maxAttempts));
+        c.header('X-RateLimit-Remaining', String(Math.max(0, maxAttempts - entry.count)));
         if (entry.count > maxAttempts) {
-            throw new RateLimitError(`Too many requests. Please try again later.`);
+            c.header('Retry-After', String(expiresAt - now));
+            throw new RateLimitError('Too many requests. Please try again later.');
         }
-
-        // Clean up old entries periodically
-        if (rateLimitStore.size > 10000) {
-            for (const [k, v] of rateLimitStore.entries()) {
-                if (now - v.resetTime > windowMs * 2) {
-                    rateLimitStore.delete(k);
-                }
-            }
-        }
-
         await next();
     };
 }
-
-// Export rate limiters for different endpoints
-export const loginRateLimit = createRateLimiter(5, 300); // 5 attempts per 5 minutes
-export const registerRateLimit = createRateLimiter(10, 3600); // 10 per hour
-export const forgotPasswordRateLimit = createRateLimiter(3, 3600); // 3 per hour
+export const loginRateLimit = createRateLimiter(5, 300);
+export const registerRateLimit = createRateLimiter(10, 3600);
+export const forgotPasswordRateLimit = createRateLimiter(3, 3600);

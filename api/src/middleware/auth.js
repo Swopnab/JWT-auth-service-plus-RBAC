@@ -25,6 +25,9 @@ export async function authMiddleware(c, next) {
 
     try {
         const payload = await authService.verifyAccessToken(token);
+        const session = await c.env.DB.prepare('SELECT id FROM sessions WHERE id = ? AND user_id = ?')
+            .bind(payload.sid, payload.sub).first();
+        if (!session) throw new UnauthorizedError('Session revoked');
         const user = await userService.getUserWithRoles(payload.sub);
 
         if (!user) {
@@ -34,16 +37,16 @@ export async function authMiddleware(c, next) {
         // Store user context
         c.set('authContext', {
             user,
-            sessionId: '', // Will be set by routes that need it
+            sessionId: payload.sid,
         });
 
-        await next();
     } catch (error) {
         if (error instanceof UnauthorizedError) {
             throw error;
         }
         throw new UnauthorizedError('Invalid access token');
     }
+    await next();
 }
 
 /**

@@ -49,7 +49,7 @@ app.notFound((c) => {
 
 // Global error handler
 app.onError((err, c) => {
-    console.error('Error:', err);
+    if (!err.statusCode || err.statusCode >= 500) console.error('Error:', err);
 
     const statusCode = err.statusCode || 500;
     const response = formatErrorResponse(err);

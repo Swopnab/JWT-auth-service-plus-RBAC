@@ -4,7 +4,7 @@ import { Hono } from 'hono';
 import { authMiddleware, getAuthContext } from '../middleware/auth.js';
 import { UserService } from '../services/user.service.js';
 import { AuthService } from '../services/auth.service.js';
-import { isStrongPassword, hashToken } from '../utils/crypto.js';
+import { isStrongPassword } from '../utils/crypto.js';
 import { ValidationError } from '../utils/errors.js';
 
 const user = new Hono();
@@ -185,8 +185,9 @@ user.post('/change-password', authMiddleware, async (c) => {
     // Update password
     const newPasswordHash = await authService.hashPassword(newPassword);
     await userService.updatePassword(authUser.id, newPasswordHash);
+    await authService.revokeAllSessions(authUser.id);
 
-    return c.json({ message: 'Password changed successfully' });
+    return c.json({ message: 'Password changed successfully. Please log in again.' });
 });
 
 export default user;

@@ -7,6 +7,14 @@ import { generateSecureToken, hashToken } from '../utils/crypto.js';
 import { UnauthorizedError } from '../utils/errors.js';
 
 export class AuthService {
+    accessSecret() {
+        const secret = this.env.JWT_ACCESS_SECRET;
+        if (typeof secret !== 'string' || secret.length < 32 || secret.startsWith('your-super-secret')) {
+            throw new Error('Set a random JWT_ACCESS_SECRET of at least 32 characters');
+        }
+        return new TextEncoder().encode(secret);
+    }
+
     /**
      * @param {Object} env - Cloudflare environment bindings
      * @param {D1Database} db - D1 database instance
@@ -115,16 +123,18 @@ export class AuthService {
      * @param {Object} user - User object with roles and permissions
      * @returns {Promise<string>} JSON Web Token
      */
-    async generateAccessToken(user) {
+    async generateAccessToken(user, sessionId) {
+        if (!sessionId) throw new Error("A session is required for access tokens");
         const payload = {
-            sub: user.id,
+            sub: String(user.id),
+            sid: sessionId,
             email: user.email,
             roles: user.roles.map(r => r.name),
             permissions: user.permissions.map(p => p.name),
             type: 'access',
         };
 
-        const secret = new TextEncoder().encode(this.env.JWT_ACCESS_SECRET);
+        const secret = this.accessSecret();
         const expiry = parseDuration(this.env.ACCESS_TOKEN_EXPIRY || '15m');
 
         return new SignJWT(payload)
@@ -142,18 +152,20 @@ export class AuthService {
      */
     async generateRefreshToken(userId, sessionId) {
         const token = generateSecureToken(32);
-        const tokenHash = hashToken(token);
+        const tokenHash = await hashToken(token);
 
         const expiry = parseDuration(this.env.REFRESH_TOKEN_EXPIRY || '7d');
         const expiresAt = addSeconds(expiry);
 
         // Store hashed token in database
-        await this.db
+        const stored = await this.db
             .prepare(
-                'INSERT INTO refresh_tokens (session_id, token_hash, expires_at) VALUES (?, ?, ?)'
+                `INSERT INTO refresh_tokens (session_id, token_hash, expires_at)
+                 SELECT ?, ?, ? WHERE EXISTS (SELECT 1 FROM sessions WHERE id = ? AND user_id = ?)`
             )
-            .bind(sessionId, tokenHash, formatDateForDB(expiresAt))
+            .bind(sessionId, tokenHash, formatDateForDB(expiresAt), sessionId, userId)
             .run();
+        if (stored.meta.changes !== 1) throw new UnauthorizedError('Session revoked during token rotation');
 
         // Return the raw token to the client
         return token;
@@ -166,10 +178,10 @@ export class AuthService {
      */
     async verifyAccessToken(token) {
         try {
-            const secret = new TextEncoder().encode(this.env.JWT_ACCESS_SECRET);
-            const { payload } = await jwtVerify(token, secret);
+            const secret = this.accessSecret();
+            const { payload } = await jwtVerify(token, secret, { algorithms: ['HS256'] });
 
-            if (payload.type !== 'access') {
+            if (payload.type !== 'access' || typeof payload.sid !== 'string' || !payload.sid) {
                 throw new UnauthorizedError('Invalid token type');
             }
 
@@ -185,41 +197,31 @@ export class AuthService {
      * @returns {Promise<{userId: number, sessionId: string}>} Token data
      */
     async verifyRefreshToken(token) {
-        const tokenHash = hashToken(token);
+        const tokenHash = await hashToken(token);
 
-        // Find the token in database
-        const result = await this.db
-            .prepare(
-                `SELECT rt.*, s.user_id 
-         FROM refresh_tokens rt 
-         JOIN sessions s ON rt.session_id = s.id 
-         WHERE rt.token_hash = ?`
-            )
-            .bind(tokenHash)
-            .first();
-
-        if (!result) {
-            // Token reuse detected! Revoke entire session
-            throw new UnauthorizedError('Invalid refresh token - possible reuse detected');
-        }
-
-        // Check if token is revoked
+        const result = await this.db.prepare(
+            `SELECT rt.*, s.user_id FROM refresh_tokens rt
+             JOIN sessions s ON rt.session_id = s.id WHERE rt.token_hash = ?`
+        ).bind(tokenHash).first();
+        if (!result) throw new UnauthorizedError('Invalid refresh token');
         if (result.revoked_at) {
-            // Token was already used - this is reuse! Revoke the session
             await this.revokeSession(result.session_id);
-            throw new UnauthorizedError('Refresh token reused - session revoked for security');
+            throw new UnauthorizedError('Refresh token reused - session revoked');
         }
-
-        // Check if token is expired
-        if (new Date(result.expires_at) < new Date()) {
-            throw new UnauthorizedError('Refresh token expired');
+        // SQLite evaluates expiry in UTC and consumes only an unexpired, unused
+        // token in a live session. Exactly one racing request can change this row.
+        const consumed = await this.db.prepare(
+            `UPDATE refresh_tokens SET revoked_at = datetime('now')
+             WHERE token_hash = ? AND revoked_at IS NULL
+             AND julianday(expires_at) > julianday('now')
+             AND EXISTS (SELECT 1 FROM sessions WHERE id = refresh_tokens.session_id)`
+        ).bind(tokenHash).run();
+        if (consumed.meta.changes !== 1) {
+            const token = await this.db.prepare('SELECT revoked_at FROM refresh_tokens WHERE token_hash = ?')
+                .bind(tokenHash).first();
+            if (token?.revoked_at) await this.revokeSession(result.session_id);
+            throw new UnauthorizedError('Refresh token expired, reused, or session revoked');
         }
-
-        // Mark this token as revoked (consumed)
-        await this.db
-            .prepare('UPDATE refresh_tokens SET revoked_at = datetime(\'now\') WHERE token_hash = ?')
-            .bind(tokenHash)
-            .run();
 
         return {
             userId: result.user_id,
@@ -295,7 +297,7 @@ export class AuthService {
      */
     async generateEmailVerificationToken(userId) {
         const token = generateSecureToken(32);
-        const tokenHash = hashToken(token);
+        const tokenHash = await hashToken(token);
         const expiresAt = addSeconds(config.EMAIL_VERIFICATION_EXPIRY);
 
         await this.db
@@ -315,7 +317,7 @@ export class AuthService {
      */
     async generatePasswordResetToken(userId) {
         const token = generateSecureToken(32);
-        const tokenHash = hashToken(token);
+        const tokenHash = await hashToken(token);
         const expiresAt = addSeconds(config.PASSWORD_RESET_EXPIRY);
 
         // Invalidate any existing reset tokens for this user
