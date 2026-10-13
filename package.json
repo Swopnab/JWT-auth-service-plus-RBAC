@@ -14,8 +14,8 @@
     "build:api": "npm run build --workspace=api",
     "db:migrate:local": "npm run db:migrate:local --workspace=api",
     "db:seed:local": "npm run db:seed:local --workspace=api",
-    "deploy:client": "npm run deploy --workspace=client",
-    "deploy:api": "npm run deploy --workspace=api"
+    "deploy:api": "npm run deploy --workspace=api",
+    "test": "npm test --workspace=api"
   },
   "keywords": [
     "authentication",

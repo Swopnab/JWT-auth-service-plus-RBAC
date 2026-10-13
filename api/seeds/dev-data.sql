@@ -1,6 +1,6 @@
 -- Development seed data for Auth Service
 -- Password for all users: "Password123!"
--- Hash generated with bcrypt (rounds=10): $2a$10$3euPcmQFCiblsZeEu5s7p.e0cGCJj.eVJBvJ5B1PJYZ0y4zt0ORaq
+-- PBKDF2-SHA256, 100,000 iterations; base64(salt || derived key).
 
 -- Insert default roles
 INSERT INTO roles (name, description) VALUES

@@ -238,7 +238,7 @@ async function redirectIfLoggedIn() {
 }
 
 // API Helper Functions
-async function apiRequest(endpoint, options = {}) {
+async function apiRequest(endpoint, options = {}, retried = false) {
     const config = {
         headers: {
             'Content-Type': 'application/json',
@@ -266,11 +266,11 @@ async function apiRequest(endpoint, options = {}) {
 
         if (!response.ok) {
             // Handle 401 - try to refresh token
-            if (response.status === 401 && endpoint !== '/auth/refresh' && endpoint !== '/auth/login') {
+            if (response.status === 401 && !retried && !['/auth/refresh', '/auth/login', '/auth/logout'].includes(endpoint)) {
                 const refreshed = await refreshAccessToken();
                 if (refreshed) {
                     // Retry original request with new token
-                    return apiRequest(endpoint, options);
+                    return apiRequest(endpoint, options, true);
                 } else {
                     // Refresh failed, redirect to login
                     logout();
@@ -310,7 +310,15 @@ async function register(email, password) {
     });
 }
 
+let refreshPromise = null;
 async function refreshAccessToken() {
+    if (!refreshPromise) {
+        refreshPromise = performRefresh().finally(() => { refreshPromise = null; });
+    }
+    return refreshPromise;
+}
+
+async function performRefresh() {
     const refreshToken = sessionStorage.getItem('refreshToken');
     if (!refreshToken) return false;
 
