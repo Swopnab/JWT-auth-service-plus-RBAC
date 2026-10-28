@@ -75,3 +75,5 @@ The original repository tracked `zabum-backend/storage/zabum.db` (conversation/m
 ## Checks run for this review
 
 19 Node API/client checks and 4 standalone browser scenarios passed. All 17 Postman assertions passed against both the offline SQLite harness and the actual local Workers/D1 runtime. All five migrations applied to a separate temporary local D1 database. The client production build passed. No remote database, hosted API, GitHub CI run, or public deployment was modified. Compiled Python caches were also removed from tracking while kept locally; the source modules recreate them when needed.
+
+Pages publication is now an explicit workflow dispatch so code updates cannot deploy a new client ahead of its matching API migration. Run it only after the coordinated API release succeeds.
