@@ -31,6 +31,17 @@ async function noOverflow(page){
   await s.evaluate(async()=>{await login('user@example.com','Password123!');});
   await s.goto('http://localhost:5173/sessions.html');await s.getByText(/This session/).waitFor();await shot(s,'swopmobile-sessions-desktop');
  });
+ await check('SwopMobile detects old and updated session API contracts',async()=>{
+  for(const updated of [false,true]){
+   const legacy=await browser.newContext();legacy.on('page',p=>p.on('pageerror',e=>errors.push(e.message)));const page=await legacy.newPage();
+   await page.addInitScript(()=>{const encode=value=>btoa(JSON.stringify(value));sessionStorage.setItem('accessToken',`${encode({alg:'none'})}.${encode({sub:'1',exp:Math.floor(Date.now()/1000)+600})}.fixture`);sessionStorage.setItem('user',JSON.stringify({id:'1',roles:[{name:'User'}]}));});
+   await page.route('**/sessions',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({sessions:[{id:'fixture-current',device_name:'Fictional browser',last_activity:'2026-10-28'},{id:'fixture-other',device_name:'Fictional tablet',last_activity:'2026-10-28'}],...(updated?{currentSessionId:'fixture-current'}:{})})}));
+   await page.goto('http://localhost:5173/sessions.html');await page.getByText('Fictional browser',{exact:!updated}).waitFor();
+   assert.equal(await page.locator('#revokeAllBtn').isVisible(),updated);
+   if(!updated)await page.getByRole('status').filter({hasText:'server update is pending'}).waitFor();
+   await legacy.close();
+  }
+ });
  for(const [name,url] of [['SwopMobile', 'http://localhost:5173/showcase.html']]) {
   await check(`${name} desktop, tablet and phone layouts`,async()=>{
    // Fresh contexts avoid leaking the timer's emulated clock or focus between visual cases.
