@@ -30,6 +30,7 @@
             </button>
         </div>
 
+        <p id="sessionCompatibility" role="status"></p>
         <div id="sessionsContainer"></div>
         <div id="loadingSpinner" class="flex justify-center" style="padding: 3rem;">
             <div class="spinner" style="border-color: var(--color-border); border-top-color: var(--color-primary);">
@@ -72,7 +73,9 @@
                     return;
                 }
 
-                if (sessions.length > 1) {
+                document.getElementById("sessionCompatibility").textContent = data.currentSessionId ? "" : "The server update is pending. Existing session revocation takes effect when the current access token expires; revoke-all is not available yet.";
+                revokeAllBtn.classList.add("hidden");
+                if (data.currentSessionId && sessions.length > 1) {
                     revokeAllBtn.classList.remove('hidden');
                 }
 
