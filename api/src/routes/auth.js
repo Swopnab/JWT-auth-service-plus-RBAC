@@ -18,7 +18,7 @@ auth.post('/register', registerRateLimit, async (c) => {
     const { email, password } = body;
 
     // Basic validation
-    if (!email || !password) {
+    if (typeof email !== 'string' || typeof password !== 'string' || !email || !password || email.length > 254 || password.length > 256 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         throw new ValidationError('Email and password are required');
     }
 
@@ -63,7 +63,7 @@ auth.post('/login', loginRateLimit, async (c) => {
     const body = await c.req.json();
     const { email, password, deviceName } = body;
 
-    if (!email || !password) {
+    if (typeof email !== 'string' || typeof password !== 'string' || !email || !password || email.length > 254 || password.length > 256 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         throw new ValidationError('Email and password are required');
     }
 

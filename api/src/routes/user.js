@@ -76,7 +76,7 @@ user.get('/sessions', authMiddleware, async (c) => {
         .bind(authUser.id)
         .all();
 
-    return c.json({ sessions: sessions.results || [] });
+    return c.json({ sessions: sessions.results || [], currentSessionId: getAuthContext(c).sessionId });
 });
 
 // DELETE /sessions/:id - Revoke a specific session
@@ -99,6 +99,13 @@ user.delete('/sessions/:id', authMiddleware, async (c) => {
     await authService.revokeSession(sessionId);
 
     return c.json({ message: 'Session revoked successfully' });
+});
+
+// DELETE /sessions - Revoke only the authenticated user's sessions.
+user.delete('/sessions', authMiddleware, async (c) => {
+    const { user: authUser } = getAuthContext(c);
+    await new AuthService(c.env, c.env.DB).revokeAllSessions(authUser.id);
+    return c.json({ message: 'All your sessions were revoked. Log in again.' });
 });
 
 // GET /settings - Get user settings

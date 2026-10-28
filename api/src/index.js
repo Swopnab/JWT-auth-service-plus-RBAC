@@ -29,9 +29,18 @@ app.use('/*', async (c, next) => {
     return corsMiddleware(c, next);
 });
 
+// Reject non-object JSON before route destructuring. Parsing is cached by Hono.
+app.use('/*', async (c, next) => {
+    if (['POST','PUT','PATCH'].includes(c.req.method) && (c.req.header('Content-Type') || '').includes('application/json')) {
+        const body = await c.req.json();
+        if (!body || typeof body !== 'object' || Array.isArray(body)) return c.json({error:{message:'Send a JSON object',code:'VALIDATION_ERROR'}},400);
+    }
+    await next();
+});
+
 // Health check
 app.get('/health', (c) => {
-    return c.json({ status: 'healthy', timestamp: new Date().toISOString() });
+    return c.json({ status: 'healthy', review_fixture: c.env.REVIEW_FIXTURE === '1', timestamp: new Date().toISOString() });
 });
 
 // Mount routes
@@ -49,10 +58,10 @@ app.notFound((c) => {
 
 // Global error handler
 app.onError((err, c) => {
-    if (!err.statusCode || err.statusCode >= 500) console.error('Error:', err);
+    if (!(err instanceof SyntaxError) && (!err.statusCode || err.statusCode >= 500)) console.error('Error:', err);
 
-    const statusCode = err.statusCode || 500;
-    const response = formatErrorResponse(err);
+    const statusCode = err instanceof SyntaxError ? 400 : (err.statusCode || 500);
+    const response = err instanceof SyntaxError ? {error:{message:'Send valid JSON',code:'VALIDATION_ERROR'}} : formatErrorResponse(err);
 
     return c.json(response, statusCode);
 });

@@ -4,6 +4,7 @@ const toastContainer = document.getElementById('toastContainer');
 function showToast(message, type = 'info') {
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
+    toast.setAttribute('role',type === 'error' ? 'alert' : 'status');
     toast.textContent = message;
 
     toastContainer.appendChild(toast);

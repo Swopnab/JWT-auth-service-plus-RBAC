@@ -59,3 +59,7 @@ Rate limits use atomic D1 counters shared across worker instances, with fixed ti
 The frontend retains its bearer-token design. Tokens accessible to JavaScript remain exposed to XSS; this demo should not be described as a completed security audit. A future cookie migration needs an explicit cross-origin/CSRF design and coordinated client changes. Email delivery uses the configured provider and is separate from these local tests.
 
 Static publishing uses the existing GitHub Pages workflow on main. The redundant gh-pages CLI dependency was removed; `npm run build:client` still produces the client build for preview.
+
+## Review release
+
+See [current architecture, permissions matrix, integration example, API checks, and limitations](docs/RELEASE_REVIEW.md). Use `client/showcase.html` for the project explanation and `client/example/index.html` for the separate local integration app. `client/` is the deployment source; legacy root copies are not published by the updated workflow. Changes are prepared locally and have not been deployed.

@@ -185,3 +185,28 @@ test('reset tokens are one-time and password reset revokes prior access', async 
     const hash = db.sqlite.prepare('SELECT password_hash FROM users WHERE id=1').get().password_hash;
     assert.equal(await service.verifyPassword('Changed123!',hash),true);
 });
+test('revoke-all identifies the current session and preserves another user', async () => {
+    const token = await service.generateAccessToken(user,'session-1');
+    const sessions = await request('/sessions',{token});
+    assert.equal((await sessions.json()).currentSessionId,'session-1');
+    db.sqlite.prepare('INSERT INTO sessions(id,user_id) VALUES(?,?)').run('second-device',1);
+    assert.equal((await request('/sessions',{token,method:'DELETE'})).status,200);
+    assert.equal((await request('/me',{token})).status,401);
+    assert.ok(db.sqlite.prepare('SELECT id FROM sessions WHERE id=?').get('session-2'));
+});
+test('invalid credential types and malformed JSON produce client errors', async () => {
+    for(const body of [null,[],42,{email:42,password:'Password123!'},{email:'bad',password:'Password123!'}]) {
+        assert.equal((await request('/auth/login',{method:'POST',body})).status,400);
+    }
+    const response = await app.request('/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:'{'},env);
+    assert.equal(response.status,400);
+});
+test('favorites cannot be deleted or listed through another user', async () => {
+    const created = await request('/favorites',{method:'POST',body:{item_type:'track',item_id:'fixture-track',title:'Fictional track',user_id:2}});
+    assert.equal(created.status,201);
+    const favorites = (await (await request('/favorites',{id:2})).json()).favorites;
+    assert.deepEqual(favorites,[]);
+    const response = await request('/favorites/fixture-track',{id:2,method:'DELETE'});
+    assert.equal(response.status,404);
+    assert.equal((await (await request('/favorites')).json()).favorites.length,1);
+});

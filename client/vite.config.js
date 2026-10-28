@@ -24,6 +24,8 @@ export default defineConfig({
         rollupOptions: {
             input: {
                 main: resolve(import.meta.dirname, 'index.html'),
+                showcase: resolve(import.meta.dirname, 'showcase.html'),
+                example: resolve(import.meta.dirname, 'example/index.html'),
                 dashboard: resolve(import.meta.dirname, 'dashboard.html'),
                 musicPlayer: resolve(import.meta.dirname, 'music-player.html'),
                 aiAssistant: resolve(import.meta.dirname, 'ai-assistant.html'),
@@ -40,6 +42,7 @@ export default defineConfig({
             closeBundle() {
                 copyDir(resolve(import.meta.dirname, 'js'), resolve(import.meta.dirname, 'dist/js'));
                 copyDir(resolve(import.meta.dirname, 'css'), resolve(import.meta.dirname, 'dist/css'));
+                fs.copyFileSync(resolve(import.meta.dirname, 'example/example.js'), resolve(import.meta.dirname, 'dist/example/example.js'));
             }
         }
     ]

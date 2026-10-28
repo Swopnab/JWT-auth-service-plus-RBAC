@@ -289,10 +289,10 @@ async function apiRequest(endpoint, options = {}, retried = false) {
 }
 
 // Auth API
-async function login(email, password) {
+async function login(email, password, deviceName) {
     const data = await apiRequest('/auth/login', {
         method: 'POST',
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email, password, deviceName })
     });
 
     // Store tokens and user session in sessionStorage (cleared when browser tab/window is closed)
