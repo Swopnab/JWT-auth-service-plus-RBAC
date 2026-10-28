@@ -1,3 +1,9 @@
+# Publication note
+
+Approved changes are merged into `main`, and the static interface is published on GitHub Pages: https://swopnab.github.io/JWT-auth-service-plus-RBAC/showcase.html. GitHub Pages hosts the updated interface. The existing Cloudflare Worker and D1 are unchanged; the new backend release is deferred. Compatibility controls withhold unavailable session features.
+
+The review below records pre-publication validation and its remaining limits.
+
 # SwopMobile — reusable authentication review
 
 Status: local review, no push or deployment yet. Existing public service configuration was preserved; no remote account or database was changed.

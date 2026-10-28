@@ -62,4 +62,8 @@ Static publishing uses the existing GitHub Pages workflow on main. The redundant
 
 ## Review release
 
-See [current architecture, permissions matrix, integration example, API checks, and limitations](docs/RELEASE_REVIEW.md). Use `client/showcase.html` for the project explanation and `client/example/index.html` for the separate local integration app. `client/` is the deployment source; legacy root copies are not published by the updated workflow. Changes are prepared locally and have not been deployed.
+See [current architecture, permissions matrix, integration example, API checks, and limitations](docs/RELEASE_REVIEW.md). Use `client/showcase.html` for the project explanation and `client/example/index.html` for the separate local integration app. `client/` is the deployment source; legacy root copies are not published by the updated workflow.
+
+## Published interface — October 28, 2026
+
+[Open the website](https://swopnab.github.io/JWT-auth-service-plus-RBAC/showcase.html). GitHub Pages hosts the updated interface. The existing Cloudflare Worker and D1 are unchanged; the new backend release is deferred. Compatibility controls withhold unavailable session features. See GitHub Actions for release checks and deployment status.
