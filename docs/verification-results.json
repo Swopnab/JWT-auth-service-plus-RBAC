@@ -1,0 +1,23 @@
+{
+  "fixture": "Fictional accounts; real Hono handlers and SQLite D1 adapter; Chromium viewport emulation",
+  "checks": [
+    {
+      "name": "SwopMobile registration, protected API, reload and logout",
+      "result": "passed"
+    },
+    {
+      "name": "SwopMobile session list identifies and revokes current session",
+      "result": "passed"
+    },
+    {
+      "name": "SwopMobile desktop, tablet and phone layouts",
+      "result": "passed"
+    },
+    {
+      "name": "SwopMobile keyboard disclosure navigation",
+      "result": "passed"
+    }
+  ],
+  "unhandledPageErrors": [],
+  "date": "2026-10-28"
+}

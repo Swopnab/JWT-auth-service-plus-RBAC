@@ -4,15 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sessions - Auth Service</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>Sessions - SwopMobile</title>
     <link rel="stylesheet" href="css/styles.css">
 </head>
 
 <body class="dashboard">
     <header class="header">
         <div class="header-content">
-            <a href="dashboard.html" class="logo">🛡️ Auth Service</a>
+            <a href="dashboard.html" class="logo">🛡️ SwopMobile</a>
             <div class="flex gap-md items-center">
                 <a href="dashboard.html" class="link-secondary">Dashboard</a>
                 <button onclick="logout()" class="btn btn-primary">Logout</button>
@@ -31,6 +30,7 @@
             </button>
         </div>
 
+        <p id="sessionCompatibility" role="status"></p>
         <div id="sessionsContainer"></div>
         <div id="loadingSpinner" class="flex justify-center" style="padding: 3rem;">
             <div class="spinner" style="border-color: var(--color-border); border-top-color: var(--color-primary);">
@@ -51,6 +51,7 @@
             const loadingSpinner = document.getElementById('loadingSpinner');
             const revokeAllBtn = document.getElementById('revokeAllBtn');
 
+        const escapeSessionText = value => String(value).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;", "'":"&#39;"}[c]));
         async function loadSessions() {
             try {
                 const data = await getSessions();
@@ -72,7 +73,9 @@
                     return;
                 }
 
-                if (sessions.length > 1) {
+                document.getElementById("sessionCompatibility").textContent = data.currentSessionId ? "" : "The server update is pending. Existing session revocation takes effect when the current access token expires; revoke-all is not available yet.";
+                revokeAllBtn.classList.add("hidden");
+                if (data.currentSessionId && sessions.length > 1) {
                     revokeAllBtn.classList.remove('hidden');
                 }
 
@@ -86,9 +89,9 @@
                                     <line x1="12" y1="17" x2="12" y2="21"/>
                                 </svg>
                                 <div>
-                                    <h4 style="margin-bottom: var(--spacing-xs);">${session.device_name || 'Unknown Device'}</h4>
+                                    <h4 style="margin-bottom: var(--spacing-xs);">${escapeSessionText(session.device_name || 'Unknown device')} ${session.id === data.currentSessionId ? "· This session" : ""}</h4>
                                     <p style="color: var(--color-text-secondary); font-size: var(--font-size-sm); margin: 0;">
-                                        ${session.ip_address || 'Unknown IP'}
+                                        ${escapeSessionText(session.ip_address || 'Unknown IP')}
                                     </p>
                                     <p style="color: var(--color-text-tertiary); font-size: var(--font-size-xs); margin: 0;">
                                         Last active: ${new Date(session.last_activity).toLocaleDateString()}
@@ -125,6 +128,7 @@
 
             try {
                 await revokeAllSessions();
+                clearAuth(); window.location.href = "index.html";
                 showToast('All sessions revoked', 'success');
                 setTimeout(() => logout(), 1000);
             } catch (error) {

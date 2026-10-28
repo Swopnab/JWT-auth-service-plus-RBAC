@@ -18,7 +18,7 @@ auth.post('/register', registerRateLimit, async (c) => {
     const { email, password } = body;
 
     // Basic validation
-    if (!email || !password) {
+    if (typeof email !== 'string' || typeof password !== 'string' || !email || !password || email.length > 254 || password.length > 256 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         throw new ValidationError('Email and password are required');
     }
 
@@ -63,7 +63,7 @@ auth.post('/login', loginRateLimit, async (c) => {
     const body = await c.req.json();
     const { email, password, deviceName } = body;
 
-    if (!email || !password) {
+    if (typeof email !== 'string' || typeof password !== 'string' || !email || !password || email.length > 254 || password.length > 256 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         throw new ValidationError('Email and password are required');
     }
 
@@ -96,7 +96,7 @@ auth.post('/login', loginRateLimit, async (c) => {
 
     // Generate tokens
     const userWithRoles = await userService.getUserWithRoles(user.id);
-    const accessToken = await authService.generateAccessToken(userWithRoles);
+    const accessToken = await authService.generateAccessToken(userWithRoles, sessionId);
     const refreshToken = await authService.generateRefreshToken(user.id, sessionId);
 
     return c.json({
@@ -135,7 +135,7 @@ auth.post('/refresh', async (c) => {
     }
 
     // Generate new tokens
-    const newAccessToken = await authService.generateAccessToken(user);
+    const newAccessToken = await authService.generateAccessToken(user, sessionId);
     const newRefreshToken = await authService.generateRefreshToken(userId, sessionId);
 
     return c.json({
@@ -146,19 +146,9 @@ auth.post('/refresh', async (c) => {
 
 // POST /auth/logout  
 auth.post('/logout', authMiddleware, async (c) => {
-    const { user } = getAuthContext(c);
-    const body = await c.req.json();
-    const { refreshToken } = body;
-
-    if (refreshToken) {
-        const tokenHash = hashToken(refreshToken);
-
-        // Revoke the refresh token
-        await c.env.DB
-            .prepare('UPDATE refresh_tokens SET revoked_at = datetime(\'now\') WHERE token_hash = ?')
-            .bind(tokenHash)
-            .run();
-    }
+    const { sessionId } = getAuthContext(c);
+    // Revoke this authenticated session, never a token/session supplied by another user.
+    await new AuthService(c.env, c.env.DB).revokeSession(sessionId);
 
     return c.json({ message: 'Logged out successfully' });
 });
@@ -207,7 +197,7 @@ auth.post('/reset-password', async (c) => {
         throw new ValidationError('Password is too weak', { password: errors });
     }
 
-    const tokenHash = hashToken(token);
+    const tokenHash = await hashToken(token);
 
     // Find and validate reset token
     const resetRecord = await c.env.DB
@@ -219,22 +209,15 @@ auth.post('/reset-password', async (c) => {
         throw new UnauthorizedError('Invalid or expired reset token');
     }
 
-    if (new Date(resetRecord.expires_at) < new Date()) {
-        throw new UnauthorizedError('Reset token has expired');
-    }
-
-    // Update password
     const authService = new AuthService(c.env, c.env.DB);
     const userService = new UserService(c.env.DB);
-
     const newPasswordHash = await authService.hashPassword(newPassword);
+    const consumed = await c.env.DB.prepare(
+        `UPDATE password_reset_tokens SET used_at = datetime('now')
+         WHERE token_hash = ? AND used_at IS NULL AND julianday(expires_at) > julianday('now')`
+    ).bind(tokenHash).run();
+    if (consumed.meta.changes !== 1) throw new UnauthorizedError('Invalid or expired reset token');
     await userService.updatePassword(resetRecord.user_id, newPasswordHash);
-
-    // Mark token as used
-    await c.env.DB
-        .prepare('UPDATE password_reset_tokens SET used_at = datetime(\'now\') WHERE token_hash = ?')
-        .bind(tokenHash)
-        .run();
 
     // Revoke all sessions for security
     await authService.revokeAllSessions(resetRecord.user_id);

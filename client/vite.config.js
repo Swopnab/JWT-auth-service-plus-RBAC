@@ -23,14 +23,16 @@ export default defineConfig({
         outDir: 'dist',
         rollupOptions: {
             input: {
-                main: resolve(__dirname, 'index.html'),
-                dashboard: resolve(__dirname, 'dashboard.html'),
-                musicPlayer: resolve(__dirname, 'music-player.html'),
-                aiAssistant: resolve(__dirname, 'ai-assistant.html'),
-                sessions: resolve(__dirname, 'sessions.html'),
-                register: resolve(__dirname, 'register.html'),
-                forgotPassword: resolve(__dirname, 'forgot-password.html'),
-                resetPassword: resolve(__dirname, 'reset-password.html')
+                main: resolve(import.meta.dirname, 'index.html'),
+                showcase: resolve(import.meta.dirname, 'showcase.html'),
+                example: resolve(import.meta.dirname, 'example/index.html'),
+                dashboard: resolve(import.meta.dirname, 'dashboard.html'),
+                musicPlayer: resolve(import.meta.dirname, 'music-player.html'),
+                aiAssistant: resolve(import.meta.dirname, 'ai-assistant.html'),
+                sessions: resolve(import.meta.dirname, 'sessions.html'),
+                register: resolve(import.meta.dirname, 'register.html'),
+                forgotPassword: resolve(import.meta.dirname, 'forgot-password.html'),
+                resetPassword: resolve(import.meta.dirname, 'reset-password.html')
             }
         }
     },
@@ -38,8 +40,9 @@ export default defineConfig({
         {
             name: 'copy-static-js-css',
             closeBundle() {
-                copyDir(resolve(__dirname, 'js'), resolve(__dirname, 'dist/js'));
-                copyDir(resolve(__dirname, 'css'), resolve(__dirname, 'dist/css'));
+                copyDir(resolve(import.meta.dirname, 'js'), resolve(import.meta.dirname, 'dist/js'));
+                copyDir(resolve(import.meta.dirname, 'css'), resolve(import.meta.dirname, 'dist/css'));
+                fs.copyFileSync(resolve(import.meta.dirname, 'example/example.js'), resolve(import.meta.dirname, 'dist/example/example.js'));
             }
         }
     ]
